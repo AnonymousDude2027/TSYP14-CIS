@@ -1,0 +1,123 @@
+# Detector and signal-processing parameters.
+#
+# Every threshold that is marked `calibrated: true` is NOT used at run time: it is
+# replaced by a value obtained from the block-bootstrap false-alarm calibration
+# on the calibration period only (src/tsfdi/detect/thresholds.py).  The numbers
+# below are the fixed *design* constants of each detector.
+
+sp:
+  harmonics: 3                # k = 1..3 in SP2
+  huber_c: 1.345              # Huber tuning constant (95 % efficiency under normality)
+  robust_iterations: 25
+  ar_max_order: 5             # p <= 5 selected by AIC (SP3)
+  seasonal_sigma_harmonics: 2 # k = 1..2 harmonic fit of log sigma (SP3)
+  trim_quantile: 0.001        # symmetric trimming, calibration only
+  # Rank-Gauss (empirical PIT) transform of the residual, applied before the AR
+  # filter. Enabled only for multiplicative variables, whose residual has a point
+  # mass at zero and a heavy right tail; see sp/whitening.py for the measurement
+  # that motivated it (13-15 false alarms per sensor-year without it).
+  rank_gauss_kinds: [multiplicative]
+  # Bounded causal scale guard: divide z by its trailing 365-day robust scale
+  # (30-day margin), clipped to [0.75, 1.5].  Removes the calibration/test scale
+  # drift of z, which a fixed tail threshold amplifies by ~3x.  See sp/whitening.py.
+  scale_guard: true
+  scale_guard_bounds: [0.75, 1.5]
+  # Trailing window (days) for the causal sensor/reference bias correction, and the
+  # margin (days) that keeps an active episode out of its own baseline.
+  bias_window_days: 365
+  bias_margin_days: 30
+  # After an outage longer than this, the next p+1 observations carry no z.
+  gap_reset_days: 7
+
+detectors:
+  D1_step_cusum:
+    k_sigma: 1.0
+    calibrated: true
+    target: step
+  D1_window_shift:
+    windows: [3, 7]
+    calibrated: true
+    target: step
+  D2_drift_cusum:
+    k_sigma: 0.5
+    calibrated: true
+    target: drift
+  D2_ewma:
+    lam: 0.1
+    calibrated: true
+    target: drift
+  D2_slope:
+    windows: [14, 30]
+    calibrated: true
+    target: drift
+  D3_replay:
+    lengths: [7]
+    max_length: 21
+    min_source_gap: 2          # days between the end of a candidate source window and the current window
+    quant_step: null           # null -> 0.1 degC / 0.1 mm (GHCN-Daily resolution)
+    calibrated: true
+    target: replay
+    # The NCC channel needs *dense* windows: with a zero-inflated variable a
+    # window is a sparse spike pattern, and two windows whose spikes sit at the
+    # same offsets correlate perfectly whatever their amplitudes, so the statistic
+    # is degenerate (measured: 12-14 false alarms/sensor-year on precipitation).
+    # Precipitation keeps the exact-repeat channel (precise for a copied wet
+    # sequence) and the reference-contrast channel (D3_block_contrast).
+    ncc_kinds: [temperature]
+    # Length of the exact-repetition window, per variable kind.  Seven days is
+    # specific for temperature (a 7-day sequence of deciles is not something
+    # nature repeats) but not for a zero-inflated variable, where a sparse
+    # "which days were wet" pattern recurs by chance within five years; the exact
+    # channel therefore uses a longer window for precipitation.
+    exact_lengths: {temperature: 7, multiplicative: 14}
+  D4_stuck:
+    run_multiplier: 1.5
+    calibrated: false          # data-derived envelope, not a bootstrap threshold
+  D4_spike:
+    envelope_quantile: 0.9995  # of |z| in calibration, with margin
+    margin: 1.5
+    calibrated: true
+  D6_fingerprint:
+    window_days: 180
+    min_window_days: 90
+    stride_days: 7
+    calibrated: true
+    too_clean_var_ratio: 0.02  # variance ratio below this is itself an anomaly
+    too_clean_coherence: 0.999
+
+# False-alarm calibration
+calibration:
+  budgets_per_year: [0.1, 0.5, 1.0, 2.0]
+  operating_budget: 1.0        # alarms per sensor-year used by the pipeline
+  suite_split: bonferroni      # system-level budget split across the K statistics
+  block_length_days: 30
+  n_bootstrap: 300             # array-based detectors (cheap to bootstrap)
+  # The matched filter and the spectral fingerprint are loop-based and cost
+  # ~40 ms and ~25 ms per replicate respectively; their bootstrap counts are
+  # reduced (see detect/engine.py BOOT_N) and the effect is quantified in
+  # docs/limitations.md.  The *_cap5pct quantile estimate is stable to <5 % at
+  # these counts, which is far below the difference between detectors.
+  bisection_steps: 14
+  cooldown_days: 14            # documented reset rule: events closer than this are one event
+
+# Physical consistency (D5)
+physical:
+  dtr_percentiles: [0.001, 0.999]
+  dtr_margin_c: 2.0
+  value_percentiles: [0.001, 0.999]
+  value_margin_c: 3.0
+
+# Natural-event windows (labelled from the reference, never injected; spec section 9)
+natural:
+  heat_wave:
+    variable: TMAX
+    percentile: 95
+    min_run: 3
+  cold_spell:
+    variable: TMIN
+    percentile: 5
+    min_run: 3
+  heavy_rain:
+    variable: PRCP
+    percentile: 99
+    min_run: 1

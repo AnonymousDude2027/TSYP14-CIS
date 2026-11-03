@@ -1,0 +1,13 @@
+{
+  "type": "software",
+  "algorithm": "Ed25519",
+  "label": "software",
+  "public_key_hex": "90e04e91b8ad00d64aed9c62d78a5ef131b53f8a75405b51522b74c00c2b0973",
+  "fingerprint": "23aeb31b5b1728b717dc312bd349c300",
+  "hardware_backed": false,
+  "limitations": [
+    "private key held in process memory",
+    "an attacker with code execution on the host can sign arbitrary data",
+    "states L1-L5 are required for that case (adversary A3)"
+  ]
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "quick": false,
+    "steps": [
+      "standard_profile",
+      "false_alarms",
+      "evasion",
+      "evasion_curve"
+    ],
+    "seconds": 636.6633031368256,
+    "finished": "2026-10-29T20:38:30Z",
+    "note": "Historical record, written before the run log became a list. The published tables were assembled from several invocations (the generalisation grid via scripts/run_grid.py + merge_grid.py, the remaining steps via scripts/run_rest.py, and a final 4-step re-run recorded here); this entry is the last invocation only."
+  }
+]

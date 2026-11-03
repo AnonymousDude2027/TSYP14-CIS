@@ -1,0 +1,83 @@
+# Adversary lab configuration (spec section 9).
+#
+# Magnitudes are given twice, deliberately:
+#   * `percent` follows the organizers' wording (12 % step, 15 % ramp).  For
+#     temperature, percent is taken over the site's seasonal range (see
+#     `percent_basis`), because percent of a Celsius value is meaningless.
+#   * `sigma` is the equivalent in units of the robust residual scale of the
+#     clean series.  Every table in results/ reports both.
+seed: 20261028
+
+percent_basis:
+  temperature: seasonal_range      # max-min of the fitted seasonal baseline (SP2, harmonics only)
+  precipitation: multiplicative    # factor applied to the value
+
+# Onset placement: the attack starts on a uniformly random day in this window of
+# the evaluation period, leaving `left_margin` clean days for detector warm-up and
+# requiring `right_margin` days of attack after the onset.
+onset:
+  left_margin: 120
+  right_margin: 60
+  min_duration_days: 30
+
+families:
+  attack:
+    step:   {sign: random, duration_days: 120, params: {}}
+    ramp:   {sign: random, rise_days: 90, hold_days: 60, params: {}}
+    replay: {sign: none, length: 7, source_offset_min: 30, source_offset_max: 400, gain: 1.0, noise_sigma: 0.0}
+    scaling: {sign: random, gain: 1.12, params: {}}
+    noise_shaped: {sign: random, amp_sigma: 1.0, ar1: 0.7, params: {}}
+  fault:
+    stuck_at: {duration_days: 20}
+    dropout:  {duration_days: 15}
+    spike:    {duration_days: 1, amp_sigma: 6.0}
+    calibration_drift: {rise_days: 400, magnitude_sigma: 1.5}
+  natural:
+    heat_wave: {percentile: 95, min_run: 3, variable: TMAX}
+    cold_spell: {percentile: 5, min_run: 3, variable: TMIN}
+    heavy_rain: {percentile: 99, min_run: 1, variable: PRCP}
+
+# Generalization grid (spec section 9): magnitudes in sigma units.
+grid:
+  magnitudes_sigma: [0.5, 1.0, 1.5, 2.0, 3.0]
+  attacks: [step, ramp, replay, scaling, noise_shaped]
+  injections_per_cell: 30
+
+# Magnitude conventions.  One sigma is one unit of the robust residual scale that
+# the detector sees.  For a multiplicative variable (precipitation) that scale
+# lives in square-root coordinates, so a grid magnitude is applied as an offset in
+# that coordinate (a "2 sigma step" is a wetness-dependent change in millimetres
+# whose realised effect is 2 sigma), and a multiplicative family gets the gain that
+# realises the nominal sigma from the data it is applied to.
+#
+# gain_per_sigma is only the reading of a *percentage* on the same axis: the
+# organizers' 12 % step is 0.6 sigma on precipitation with 0.2 (in the
+# square-root coordinate), which is how the standard profile is placed on the
+# grid axis.  Temperature reads a percentage over the seasonal range instead.
+conventions:
+  multiplicative_gain_per_sigma: 0.2
+
+# Held-out families: never used for threshold calibration, tuning or diagnosis
+# training.  Reported separately (spec section 12).
+held_out:
+  attacks: [scaling, noise_shaped, a2_greedy]
+  sites: [MIAMI_INTL, NAVACERRADA]
+
+adversary_levels:
+  A0:
+    description: naive - standard profile and parametric variants
+  A1a:
+    description: reference-aware, pure copy of the calibrated reference expectation
+    noise: none
+  A1b:
+    description: reference-aware copy plus white noise at matched variance
+    noise: white
+  A1c:
+    description: reference-aware copy plus AR-matched noise (knows the fingerprint)
+    noise: ar1
+  A2:
+    description: detector-aware; white-box greedy increments kept below every threshold
+    safety_margin: 0.15         # fraction of the threshold left as headroom
+    increment_grid_sigma: [0.0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
+  A3:
+    description: compromised signer - false data with valid signatures (L1-L5 only)

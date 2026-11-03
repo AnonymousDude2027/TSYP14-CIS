@@ -1,0 +1,4 @@
+# Interactive dashboard only.  results/static_report.html needs nothing.
+#   pip install -r requirements-app.txt
+#   make dashboard
+streamlit==1.66.1

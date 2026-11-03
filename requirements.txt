@@ -1,0 +1,16 @@
+# Pinned and verified on CPython 3.13 (Linux x86-64); the pipeline needs no GPU
+# and no network once data/bundle/ is present.
+# Optional extras live in requirements-dev.txt (pytest), requirements-app.txt
+# (streamlit) and requirements-report.txt (PDF rendering).
+numpy==2.3.5
+pandas==2.2.3
+scipy==1.17.1
+scikit-learn==1.6.1
+PyWavelets==1.8.0
+cryptography==50.0.2
+matplotlib==3.10.9
+PyYAML==6.0.3
+ruptures==1.1.10
+tabulate==0.9.0
+# pyod is not required: B3 falls back to scikit-learn's IsolationForest when it
+# is absent, which is the configuration the report's numbers were produced in.

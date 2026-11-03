@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+data/keys/
+results/cache/
+.pytest_cache/
+*.egg-info/
+results/*.log
+!results/calibrate_all.log
+
+# LaTeX build byproducts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+!results/calibrate_all.log

@@ -1,0 +1,24 @@
+# Decision rules used for the impact estimate (spec section 11).
+#
+# The impact of an attack is the number of days on which a documented decision
+# differs between the true series and the series the analyst would have used.
+# This measures the effect on decisions, not the attacker's intent.
+rules:
+  frost_alert:      {variable: TMIN, op: lt, threshold: 0.0, window: 1}
+  heat_stress:      {variable: TMAX, op: gt, threshold: 40.0, window: 1}
+  drought_30d:      {variable: PRCP, op: lt, threshold: 10.0, window: 30}
+  heavy_rain_30d:   {variable: PRCP, op: gt, threshold: 100.0, window: 30}
+
+response:
+  # action ladder (spec section 11)
+  ladder: [OK, WATCH, QUARANTINE, SUSPEND, SECURITY_INCIDENT]
+  watch_after_alarms: 1
+  quarantine_after_alarms: 2
+  suspend_after_alarms: 4
+  quarantine_window_days: 30
+  reference_fallback: true     # QUARANTINE replaces the reading by the reference expectation
+
+diagnosis:
+  tier2_enabled: true          # multinomial logistic regression; kept only if the ablation shows a gain
+  min_training_events: 400
+  confidence_levels: [low, medium, high]

@@ -1,0 +1,26 @@
+# The organizers' standard profile (spec sections 1 and 9).
+#
+# Injected into a real series, with the site and the interval hidden in the
+# final test.  Reproduced exactly here; every number is also reported in sigma
+# units because a percentage of a temperature is otherwise meaningless.
+profile:
+  name: standard
+  step:
+    magnitude_percent: 12.0
+    basis: seasonal_range
+    duration_days: 120
+  ramp:
+    magnitude_percent: 15.0
+    basis: seasonal_range
+    rise_days: 90
+    hold_days: 60
+  replay:
+    length: 7
+    source_offset_days: [30, 400]
+
+# Robustness of the standard-profile claim: the organizers may reuse the
+# 12 % / 15 % / 7-sample numbers on a different site or interval, so the whole
+# profile is also evaluated with the onset hidden and the site held out.
+hidden_evaluation:
+  reuse_standard_numbers: true
+  report_sigma_equivalent: true

@@ -1,0 +1,6 @@
+# PDF rendering of docs/report.md and docs/report_appendix.md (make report-pdf).
+# The Python side needs only pypdf (page count); the typesetting is XeLaTeX.
+#   pip install -r requirements-report.txt
+#   texlive: xelatex + booktabs longtable titlesec enumitem caption tex-gyre
+#   (Debian/Ubuntu: apt install texlive-xetex texlive-latex-recommended texlive-fonts-recommended)
+pypdf==6.21.4

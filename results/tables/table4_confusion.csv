@@ -1,0 +1,5 @@
+truth,natural,fault,attack,undetermined,row_total
+natural,4,0,0,0,4
+fault,0,63,18,27,108
+attack,0,0,45,63,108
+undetermined,0,0,2,22,24

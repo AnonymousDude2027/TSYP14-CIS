@@ -1,0 +1,1344 @@
+{
+  "site": "TSM00060715",
+  "variable": "TMAX",
+  "attack": "step",
+  "n_events": 29,
+  "alerts": [
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 747,
+      "timestamp": "2017-01-17 00:00:00",
+      "detectors_fired": [
+        "D2_ewma"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 3.5504964937794847,
+        "mean_z": -1.8257463308751454,
+        "run_length_days": 4,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.7236144057497698,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.5626273669928896,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 747. Detectors that fired: D2_ewma. Onset shape (SP4): step; worst |z| in the window: 3.55 sigma. Mean residual over the window: -1.83 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 766,
+      "timestamp": "2017-02-05 00:00:00",
+      "detectors_fired": [
+        "D2_slope_30"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 2.2333572394004046,
+        "mean_z": 0.34884877491204086,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.5053562578793183,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 1.5576892287356263,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "QUARANTINE",
+      "action_detail": "2 alarm events: readings excluded, reference used as fallback",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 766. Detectors that fired: D2_slope_30. Onset shape (SP4): step; worst |z| in the window: 2.23 sigma. Mean residual over the window: +0.35 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: QUARANTINE -- 2 alarm events: readings excluded, reference used as fallback."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 1903,
+      "timestamp": "2020-03-18 00:00:00",
+      "detectors_fired": [
+        "D6_fingerprint"
+      ],
+      "class_probs": {
+        "natural": 0.16666666666666666,
+        "fault": 0.16666666666666666,
+        "attack": 0.16666666666666666,
+        "undetermined": 0.5
+      },
+      "confidence": 0.5,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 0.9525794208950222,
+        "mean_z": -0.2608923604432216,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 7.430829646997651,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 1903. Detectors that fired: D6_fingerprint. Onset shape (SP4): step; worst |z| in the window: 0.95 sigma. Mean residual over the window: -0.26 sigma. Diagnosis: an alarm fired but no shape, provenance or fingerprint evidence discriminates the cause. Classification: undetermined (confidence 0.50, low). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 1952,
+      "timestamp": "2020-05-06 00:00:00",
+      "detectors_fired": [
+        "D6_fingerprint"
+      ],
+      "class_probs": {
+        "natural": 0.16666666666666666,
+        "fault": 0.16666666666666666,
+        "attack": 0.16666666666666666,
+        "undetermined": 0.5
+      },
+      "confidence": 0.5,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 0.7417755839435745,
+        "mean_z": -0.7417755839435745,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 7.2738123718705365,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 1952. Detectors that fired: D6_fingerprint. Onset shape (SP4): step; worst |z| in the window: 0.74 sigma. Mean residual over the window: -0.74 sigma. Diagnosis: an alarm fired but no shape, provenance or fingerprint evidence discriminates the cause. Classification: undetermined (confidence 0.50, low). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2152,
+      "timestamp": "2020-11-22 00:00:00",
+      "detectors_fired": [
+        "D2_slope_14"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "ramp",
+        "z_scale": 3.8698203670716116,
+        "mean_z": -0.07784721658160379,
+        "run_length_days": 2,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2152. Detectors that fired: D2_slope_14. Onset shape (SP4): ramp; worst |z| in the window: 3.87 sigma. Mean residual over the window: -0.08 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2202,
+      "timestamp": "2021-01-11 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_ewma",
+        "D1_window_shift_3",
+        "D1_window_shift_7",
+        "D2_slope_14",
+        "D3_block_contrast"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 3.92033145054746,
+        "mean_z": 0.19266183357377695,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.0959581055753385,
+        "replay_match": {
+          "ncc": NaN,
+          "lag_days": null,
+          "exact": false,
+          "n_exact_values": 0
+        }
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2202. Detectors that fired: D1_step_cusum, D2_ewma, D1_window_shift_3, D1_window_shift_7, D2_slope_14, D3_block_contrast. Onset shape (SP4): step; worst |z| in the window: 3.92 sigma. Mean residual over the window: +0.19 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2235,
+      "timestamp": "2021-02-13 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum",
+        "D2_ewma",
+        "D1_window_shift_7"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 2.8925147869630057,
+        "mean_z": -0.08299903288029993,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 1.21802699880627,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2235. Detectors that fired: D1_step_cusum, D2_drift_cusum, D2_ewma, D1_window_shift_7. Onset shape (SP4): step; worst |z| in the window: 2.89 sigma. Mean residual over the window: -0.08 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2250,
+      "timestamp": "2021-02-28 00:00:00",
+      "detectors_fired": [
+        "D1_window_shift_7"
+      ],
+      "class_probs": {
+        "natural": 0.10000000000000002,
+        "fault": 0.10000000000000002,
+        "attack": 0.7,
+        "undetermined": 0.10000000000000002
+      },
+      "confidence": 0.7,
+      "confidence_band": "medium",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 2.6206858415781125,
+        "mean_z": -1.0176172345147854,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "QUARANTINE",
+      "action_detail": "2 alarm events: readings excluded, reference used as fallback",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2250. Detectors that fired: D1_window_shift_7. Onset shape (SP4): step; worst |z| in the window: 2.62 sigma. Mean residual over the window: -1.02 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.70, medium). Recommended action: QUARANTINE -- 2 alarm events: readings excluded, reference used as fallback."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2279,
+      "timestamp": "2021-03-29 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum",
+        "D2_ewma"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.095879630760844,
+        "mean_z": -1.095879630760844,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2279. Detectors that fired: D1_step_cusum, D2_drift_cusum, D2_ewma. Onset shape (SP4): step; worst |z| in the window: 1.10 sigma. Mean residual over the window: -1.10 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2310,
+      "timestamp": "2021-04-29 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum",
+        "D2_ewma"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.1533045283563006,
+        "mean_z": -1.1533045283563006,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2310. Detectors that fired: D1_step_cusum, D2_drift_cusum, D2_ewma. Onset shape (SP4): step; worst |z| in the window: 1.15 sigma. Mean residual over the window: -1.15 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2341,
+      "timestamp": "2021-05-30 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum",
+        "D2_ewma"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "medium",
+      "evidence": {
+        "onset_shape": "unclear",
+        "z_scale": 1.350183063573084,
+        "mean_z": 1.350183063573084,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2341. Detectors that fired: D1_step_cusum, D2_drift_cusum, D2_ewma. Onset shape (SP4): unclear; worst |z| in the window: 1.35 sigma. Mean residual over the window: +1.35 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, medium). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2359,
+      "timestamp": "2021-06-17 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.5600638507239417,
+        "mean_z": 0.05614738213089196,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 1.324088309815449,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2359. Detectors that fired: D1_step_cusum, D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 1.56 sigma. Mean residual over the window: +0.06 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2384,
+      "timestamp": "2021-07-12 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 2.248380476307761,
+        "mean_z": -0.8353412340077715,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2384. Detectors that fired: D1_step_cusum, D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 2.25 sigma. Mean residual over the window: -0.84 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2400,
+      "timestamp": "2021-07-28 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.8969465770959237,
+        "mean_z": -0.14755689672508346,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.5417427818824684,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2400. Detectors that fired: D1_step_cusum, D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 1.90 sigma. Mean residual over the window: -0.15 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2415,
+      "timestamp": "2021-08-12 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 4.122781409364803,
+        "mean_z": -0.8080046001119634,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.9416522782332714,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2415. Detectors that fired: D1_step_cusum, D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 4.12 sigma. Mean residual over the window: -0.81 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2431,
+      "timestamp": "2021-08-28 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.994290177305127,
+        "mean_z": -0.5169190120019072,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 2.166719084239591,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2431. Detectors that fired: D1_step_cusum, D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 1.99 sigma. Mean residual over the window: -0.52 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2446,
+      "timestamp": "2021-09-12 00:00:00",
+      "detectors_fired": [
+        "D1_step_cusum",
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.05000000000000001,
+        "fault": 0.05000000000000001,
+        "attack": 0.85,
+        "undetermined": 0.05000000000000001
+      },
+      "confidence": 0.85,
+      "confidence_band": "high",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.155920750539515,
+        "mean_z": -0.34831396350477417,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.6796814382247143,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "SECURITY_INCIDENT",
+      "action_detail": "high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2446. Detectors that fired: D1_step_cusum, D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 1.16 sigma. Mean residual over the window: -0.35 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.85, high). Recommended action: SECURITY_INCIDENT -- high-confidence attack diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift)."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2461,
+      "timestamp": "2021-09-27 00:00:00",
+      "detectors_fired": [
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 3.359082325025495,
+        "mean_z": -0.512756603476832,
+        "run_length_days": 3,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": NaN,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "QUARANTINE",
+      "action_detail": "3 alarm events: readings excluded, reference used as fallback",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2461. Detectors that fired: D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 3.36 sigma. Mean residual over the window: -0.51 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: QUARANTINE -- 3 alarm events: readings excluded, reference used as fallback."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2476,
+      "timestamp": "2021-10-12 00:00:00",
+      "detectors_fired": [
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.4122337761585275,
+        "mean_z": 0.06553248219663654,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": NaN,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 1.4823383138705837,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "QUARANTINE",
+      "action_detail": "3 alarm events: readings excluded, reference used as fallback",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2476. Detectors that fired: D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 1.41 sigma. Mean residual over the window: +0.07 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: QUARANTINE -- 3 alarm events: readings excluded, reference used as fallback."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2492,
+      "timestamp": "2021-10-28 00:00:00",
+      "detectors_fired": [
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.513578661816945,
+        "mean_z": 0.04697759809025204,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.706592145860661,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 1.0211851141305892,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "QUARANTINE",
+      "action_detail": "2 alarm events: readings excluded, reference used as fallback",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2492. Detectors that fired: D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 1.51 sigma. Mean residual over the window: +0.05 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: QUARANTINE -- 2 alarm events: readings excluded, reference used as fallback."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2507,
+      "timestamp": "2021-11-12 00:00:00",
+      "detectors_fired": [
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.94813846363032,
+        "mean_z": 0.02511969342573742,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.6877489631509976,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.7052219337202057,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "QUARANTINE",
+      "action_detail": "2 alarm events: readings excluded, reference used as fallback",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2507. Detectors that fired: D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 1.95 sigma. Mean residual over the window: +0.03 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: QUARANTINE -- 2 alarm events: readings excluded, reference used as fallback."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2522,
+      "timestamp": "2021-11-27 00:00:00",
+      "detectors_fired": [
+        "D2_drift_cusum"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.6775505778972006,
+        "mean_z": 0.14425118176439794,
+        "run_length_days": 1,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.391303114882401,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.1537651204428709,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "QUARANTINE",
+      "action_detail": "3 alarm events: readings excluded, reference used as fallback",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2522. Detectors that fired: D2_drift_cusum. Onset shape (SP4): step; worst |z| in the window: 1.68 sigma. Mean residual over the window: +0.14 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: QUARANTINE -- 3 alarm events: readings excluded, reference used as fallback."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2655,
+      "timestamp": "2022-04-09 00:00:00",
+      "detectors_fired": [
+        "D3_replay_ncc"
+      ],
+      "class_probs": {
+        "natural": 0.16666666666666666,
+        "fault": 0.16666666666666666,
+        "attack": 0.16666666666666666,
+        "undetermined": 0.5
+      },
+      "confidence": 0.5,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.8212187847744676,
+        "mean_z": 0.28346594866003755,
+        "run_length_days": 2,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.8890942532754416,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.5364844333082266,
+        "replay_match": {
+          "ncc": 0.990559592159613,
+          "lag_days": 81,
+          "exact": false,
+          "n_exact_values": 0
+        }
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2655. Detectors that fired: D3_replay_ncc. Onset shape (SP4): step; worst |z| in the window: 1.82 sigma. Mean residual over the window: +0.28 sigma. Diagnosis: an alarm fired but no shape, provenance or fingerprint evidence discriminates the cause. Classification: undetermined (confidence 0.50, low). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2718,
+      "timestamp": "2022-06-11 00:00:00",
+      "detectors_fired": [
+        "D3_replay_ncc"
+      ],
+      "class_probs": {
+        "natural": 0.16666666666666666,
+        "fault": 0.16666666666666666,
+        "attack": 0.16666666666666666,
+        "undetermined": 0.5
+      },
+      "confidence": 0.5,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 1.7636968095731769,
+        "mean_z": 0.4069444757855911,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 5.112020861444955,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.059605321059468246,
+        "replay_match": {
+          "ncc": 0.9901274066660117,
+          "lag_days": 2305,
+          "exact": false,
+          "n_exact_values": 0
+        }
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2718. Detectors that fired: D3_replay_ncc. Onset shape (SP4): step; worst |z| in the window: 1.76 sigma. Mean residual over the window: +0.41 sigma. Diagnosis: an alarm fired but no shape, provenance or fingerprint evidence discriminates the cause. Classification: undetermined (confidence 0.50, low). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2785,
+      "timestamp": "2022-08-17 00:00:00",
+      "detectors_fired": [
+        "D1_window_shift_3"
+      ],
+      "class_probs": {
+        "natural": 0.10000000000000002,
+        "fault": 0.10000000000000002,
+        "attack": 0.7,
+        "undetermined": 0.10000000000000002
+      },
+      "confidence": 0.7,
+      "confidence_band": "medium",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 3.3013383088951636,
+        "mean_z": 0.8854863944212599,
+        "run_length_days": 4,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.6403368027875866,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 1.492264214555152,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2785. Detectors that fired: D1_window_shift_3. Onset shape (SP4): step; worst |z| in the window: 3.30 sigma. Mean residual over the window: +0.89 sigma. Diagnosis: step-like onset detected by D1 (CUSUM and short-window mean shift). Classification: attack (confidence 0.70, medium). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 2990,
+      "timestamp": "2023-03-10 00:00:00",
+      "detectors_fired": [
+        "D3_replay_ncc"
+      ],
+      "class_probs": {
+        "natural": 0.16666666666666666,
+        "fault": 0.16666666666666666,
+        "attack": 0.16666666666666666,
+        "undetermined": 0.5
+      },
+      "confidence": 0.5,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 2.0783790319826676,
+        "mean_z": 0.4792035739810851,
+        "run_length_days": 0,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.9070133574151136,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 1.3936720365275441,
+        "replay_match": {
+          "ncc": 0.9947205602966555,
+          "lag_days": 1445,
+          "exact": false,
+          "n_exact_values": 0
+        }
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 2990. Detectors that fired: D3_replay_ncc. Onset shape (SP4): step; worst |z| in the window: 2.08 sigma. Mean residual over the window: +0.48 sigma. Diagnosis: an alarm fired but no shape, provenance or fingerprint evidence discriminates the cause. Classification: undetermined (confidence 0.50, low). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 3186,
+      "timestamp": "2023-09-22 00:00:00",
+      "detectors_fired": [
+        "D4_spike",
+        "D1_window_shift_3"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "medium",
+      "evidence": {
+        "onset_shape": "ramp",
+        "z_scale": 6.495099007960574,
+        "mean_z": -0.8122457367894785,
+        "run_length_days": 2,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 4.08519372860495,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 2.2810911831401586,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 3186. Detectors that fired: D4_spike, D1_window_shift_3. Onset shape (SP4): ramp; worst |z| in the window: 6.50 sigma. Mean residual over the window: -0.81 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, medium). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 3245,
+      "timestamp": "2023-11-20 00:00:00",
+      "detectors_fired": [
+        "D2_drift_cusum",
+        "D2_ewma"
+      ],
+      "class_probs": {
+        "natural": 0.13333333333333333,
+        "fault": 0.13333333333333333,
+        "attack": 0.13333333333333333,
+        "undetermined": 0.6
+      },
+      "confidence": 0.6,
+      "confidence_band": "low",
+      "evidence": {
+        "onset_shape": "step",
+        "z_scale": 2.769989426362101,
+        "mean_z": 1.4921842102067373,
+        "run_length_days": 2,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 5.6761886256021405,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 0.9557909142759105,
+        "replay_match": null
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 3245. Detectors that fired: D2_drift_cusum, D2_ewma. Onset shape (SP4): step; worst |z| in the window: 2.77 sigma. Mean residual over the window: +1.49 sigma. Diagnosis: slow drift consistent with D2 (EWMA / slope test); a slow calibration drift of the sensor is equally consistent, so the cause is reported as undetermined. Classification: undetermined (confidence 0.60, low). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    },
+    {
+      "site": "TSM00060715",
+      "variable": "TMAX",
+      "t_alarm": 3305,
+      "timestamp": "2024-01-19 00:00:00",
+      "detectors_fired": [
+        "D1_window_shift_3",
+        "D2_slope_14",
+        "D3_block_contrast"
+      ],
+      "class_probs": {
+        "natural": 0.10000000000000002,
+        "fault": 0.10000000000000002,
+        "attack": 0.7,
+        "undetermined": 0.10000000000000002
+      },
+      "confidence": 0.7,
+      "confidence_band": "medium",
+      "evidence": {
+        "onset_shape": "ramp",
+        "z_scale": 3.65004061995145,
+        "mean_z": 0.29766972044920725,
+        "run_length_days": 3,
+        "n_variables_affected": 1,
+        "reference_extreme": false,
+        "fingerprint_distance": 3.5938157013259144,
+        "fingerprint_too_clean": false,
+        "fault_envelope_exceeded": false,
+        "replay_exact_hit": false,
+        "block_contrast": 5.423116144646511,
+        "replay_match": {
+          "ncc": NaN,
+          "lag_days": null,
+          "exact": false,
+          "n_exact_values": 0
+        }
+      },
+      "provenance": {
+        "ok": true,
+        "violations": []
+      },
+      "impact": {
+        "flips_total": 9,
+        "per_rule": {
+          "heat_stress": 9
+        }
+      },
+      "action": "WATCH",
+      "action_detail": "an alarm event was recorded; monitoring continues",
+      "explanation_text": "TSM00060715 / TMAX: alarm on day index 3305. Detectors that fired: D1_window_shift_3, D2_slope_14, D3_block_contrast. Onset shape (SP4): ramp; worst |z| in the window: 3.65 sigma. Mean residual over the window: +0.30 sigma. Diagnosis: L-day block contrast 5.4 sigma with a short run: a bounded replacement. Classification: attack (confidence 0.70, medium). Recommended action: WATCH -- an alarm event was recorded; monitoring continues."
+    }
+  ],
+  "latency_ms": {
+    "L0_provenance_per_reading": 0.15131959320900512,
+    "L2_detectors_per_reading": 0.11775586121226696,
+    "L3_consistency_per_reading": 0.0032183405161052437,
+    "SP3_whitening_per_reading": 0.0030750158771889026
+  },
+  "provenance": {
+    "ok": true,
+    "violations": [],
+    "fingerprint": "23aeb31b5b1728b717dc312bd349c300"
+  }
+}

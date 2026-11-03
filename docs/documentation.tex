@@ -1,0 +1,956 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=20mm,top=17mm,bottom=17mm]{geometry}
+\usepackage{fontspec}
+\setmainfont{texgyretermes}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,
+  ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\setsansfont{texgyreheros}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,
+  ItalicFont=*-italic,BoldItalicFont=*-bolditalic,Scale=0.94]
+\setmonofont{texgyrecursor}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,
+  ItalicFont=*-italic,BoldItalicFont=*-bolditalic,Scale=0.90]
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{fvextra}
+\usepackage{amsmath,amssymb}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,justification=justified,singlelinecheck=false}
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\large\bfseries}{}{0pt}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{}{0pt}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\itshape}{}{0pt}{}
+\titlespacing*{\section}{0pt}{11pt plus 2pt minus 1pt}{4pt}
+\titlespacing*{\subsection}{0pt}{9pt plus 2pt minus 1pt}{3pt}
+\titlespacing*{\subsubsection}{0pt}{7pt plus 1pt}{2pt}
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=1.2em,topsep=2pt,itemsep=1pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.4em,topsep=2pt,itemsep=1pt,parsep=0pt}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3.2pt plus 1pt}
+\setlength{\emergencystretch}{2.5em}
+\renewcommand{\arraystretch}{1.04}
+\begin{document}
+\begin{center}
+{\Large\bfseries Technical documentation — Track 2\par}
+\vspace{3pt}
+
+\end{center}
+\vspace{-2pt}
+\clearpage
+\section*{Overview}
+Track 2 (false-\allowbreak{}data injection on in-\allowbreak{}situ sensor readings). The system treats a weather station as \textbf{untrusted} and an independent reanalysis product as a \textbf{hash-\allowbreak{}pinned trusted reference}, then decides — with thresholds calibrated to a \emph{false-\allowbreak{}alarm budget} — whether a day's reported value is consistent with the reference, the sensor's own history and its spectral fingerprint.
+
+Everything is offline-\allowbreak{}reproducible on a 4 GB /\allowbreak{} 2-\allowbreak{}vCPU machine with no GPU:
+
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+make setup          # pinned requirements in a venv
+make all            # data-verify -> gonogo -> calibrate -> experiments -> report -> verify
+make dashboard      # interactive demo (Streamlit); `make static` is the no-Streamlit fallback
+\end{Verbatim}
+
+\texttt{bash run.sh -\allowbreak{}-\allowbreak{}quick} runs the whole chain in a few minutes with a reduced grid.
+
+The three PDFs are the submitted artefacts. They are typeset from the Markdown by \texttt{make report-\allowbreak{}pdf} (XeLaTeX), so every number in them is the generated one:
+
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.219\linewidth}r>{\raggedright\arraybackslash}p{0.667\linewidth}}
+\toprule
+PDF & Pages & Contents \\
+\midrule
+\endfirsthead
+\toprule
+PDF & Pages & Contents \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{docs/\allowbreak{}report.pdf} & 8 & the report: threat model, architecture and trust anchor, signal processing, detection, evaluation and evasion, efficiency, limitations \\
+\texttt{docs/\allowbreak{}appendix.pdf} & 6 & full per-\allowbreak{}site and per-\allowbreak{}magnitude tables (A.1–A.15) \\
+\texttt{docs/\allowbreak{}documentation.pdf} & 20 & README + compliance + threat model + design decisions + data sources + state of the art + reproducibility guide, bound together \\
+\end{longtable}
+}
+
+\texttt{docs/\allowbreak{}compliance.md} maps the six required deliverables and the four Phase-\allowbreak{}1 submission items to the files that satisfy them, names the two data archives and defines the standard evaluation scenario in full.
+
+\section*{What is here}
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.209\linewidth}>{\raggedright\arraybackslash}p{0.744\linewidth}}
+\toprule
+Path & Contents \\
+\midrule
+\endfirsthead
+\toprule
+Path & Contents \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{src/\allowbreak{}tsfdi/\allowbreak{}provenance/\allowbreak{}} & L0: canonical fixed-\allowbreak{}point records, SHA-\allowbreak{}256 hash chain, Ed25519 signatures, signed data manifest, streaming verifier with typed errors \\
+\texttt{src/\allowbreak{}tsfdi/\allowbreak{}sp/\allowbreak{}} & L1: SP1 conditioning (units, lag, gaps), SP2 robust expectation (Huber + harmonics), SP3 whitening (AR + seasonal scale + rank-\allowbreak{}Gauss + causal bias/\allowbreak{}scale guards), SP4 wavelets, SP5 matched filter, SP6 spectral fingerprint \\
+\texttt{src/\allowbreak{}tsfdi/\allowbreak{}detect/\allowbreak{}} & L2: D1 step, D2 drift, D3 replay, D4 fault envelope, D6 fingerprint; block-\allowbreak{}bootstrap false-\allowbreak{}alarm calibration; the single \texttt{SchmittAlarm} event rule \\
+\texttt{src/\allowbreak{}tsfdi/\allowbreak{}attacks/\allowbreak{}} & the injector (step, ramp, replay, scaling, noise-\allowbreak{}shaped, faults, natural events) and the adversary hierarchy A0–A3 \\
+\texttt{src/\allowbreak{}tsfdi/\allowbreak{}diagnose/\allowbreak{}} & L4/\allowbreak{}L5: evidence, rule table, Tier-\allowbreak{}2 logistic regression, action ladder, decision-\allowbreak{}impact estimate, templated explanations \\
+\texttt{src/\allowbreak{}tsfdi/\allowbreak{}eval/\allowbreak{}} & metrics (no point-\allowbreak{}adjusted F1), runner, baselines B0–B3, ablations, experiment orchestration \\
+\texttt{src/\allowbreak{}tsfdi/\allowbreak{}pipeline.py} & the streaming L0→L5 path used by the CLI, the dashboard and the tests \\
+\texttt{docs/\allowbreak{}} & report (\texttt{report.pdf}), appendix (\texttt{appendix.pdf}), documentation bundle (\texttt{documentation.pdf}) and their Markdown sources: threat model, design decisions, data sources, state of the art, reproducibility guide, compliance \\
+\texttt{data/\allowbreak{}bundle/\allowbreak{}} & 24 CSVs + \texttt{data/\allowbreak{}bundle/\allowbreak{}FETCH\_\allowbreak{}INFO.json} + signed \texttt{MANIFEST.sha256}/\allowbreak{}\texttt{MANIFEST.sig} \\
+\texttt{results/\allowbreak{}} & tables, figures, raw per-\allowbreak{}injection CSVs, model cache, benchmark \\
+\end{longtable}
+}
+
+\section*{Commands}
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+python -m tsfdi fetch          # (network) rebuild the bundle; not part of make all
+python -m tsfdi data-verify    # verify the signed manifest
+python -m tsfdi sites          # re-measure station completeness
+python -m tsfdi gonogo         # go/no-go gate (spec section 6) -- run before quoting anything
+python -m tsfdi calibrate      # fit + calibrate 34 (site, variable) models
+python -m tsfdi stream CARTHAGE TMAX --attack step --magnitude 3   # day-by-day L0-L5
+python -m tsfdi experiments    # standard profile, grid, false alarms, baselines, ablations, evasion
+python -m tsfdi report-figures # tables + figures from results/raw
+python -m tsfdi report-text    # docs/report.md from the tables
+python -m tsfdi bench          # provenance overhead over 100 000 records
+python -m tsfdi verify         # compare against expected_results.json
+python -m tsfdi selftest       # the unit-test suite
+\end{Verbatim}
+
+\section*{Headline results (regenerate with \texttt{make all})}
+See \texttt{docs/\allowbreak{}report.md} for the full evaluation. The short version, all measured on the 2020–2024 test period with thresholds calibrated on 2015–2019 only:
+
+\begin{itemize}
+\item the organizers' standard profile (12 \% step, 15 \% ramp, 7-\allowbreak{}day replay) is
+detected on every station/\allowbreak{}variable pair;
+
+\item false alarms on clean data have a median of \textasciitilde{}1.6 per sensor-\allowbreak{}year across 34
+pairs, reported per station and separately inside natural extremes;
+
+\item the damage a black-\allowbreak{}box adaptive attacker can insert at a 1-\allowbreak{}alarm/\allowbreak{}year budget is
+quantified in $\sigma$·sensor-\allowbreak{}days, and the evasion curve is reported against the budget;
+
+\item provenance costs \textasciitilde{}0.2 ms per reading and adds \textasciitilde{}200 bytes per record.
+\end{itemize}
+
+\section*{Honesty notes}
+Four failure modes were found on real data that do not appear in synthetic benchmarks (a non-\allowbreak{}monotone threshold calibration, a non-\allowbreak{}stationary sensor/\allowbreak{}reference bias, a degenerate matched filter on zero-\allowbreak{}inflated precipitation, and a replay detector that matched dry spells). Each is documented in \texttt{docs/\allowbreak{}design.md} with the measurement that exposed it and the fix that removed it. Where the system does not deliver — A1c and A2 adversaries, stations whose relationship to the reference changes, precipitation as a restricted claim — the limitation is stated in \texttt{docs/\allowbreak{}report.md} §8 and \texttt{docs/\allowbreak{}threat\_\allowbreak{}model.md} §5 instead of being tuned away.
+
+\section*{Anonymity}
+No names, affiliations, logos or identifying metadata in code, data or documents.
+
+\section*{What the numbers rest on}
+\begin{itemize}
+\item \textbf{One magnitude axis.} Every detection rate in the report is quoted in units of
+the robust residual scale the detector actually sees, and every family is calibrated so that a nominal \texttt{m} sigma is a realised \texttt{m} sigma (additive families as an offset in the SP1 coordinate, multiplicative families as a gain computed from the data). \texttt{docs/\allowbreak{}design.md} §3f explains the three bugs that made the first version of the grid misleading, and the parity that the fix restored.
+
+\item \textbf{False alarms are measured, not assumed.} Table 3 reports alarm events per
+sensor-\allowbreak{}year out of sample, including inside natural extremes; the baselines get their own false-\allowbreak{}alarm column (Table baselines-\allowbreak{}b) so that a detection rate can be read against the rate it actually costs.
+
+\item \textbf{Every failure mode has a channel.} The detectors see values; a silenced
+sensor produces no value to see, so D7 tests the reporting cadence itself and reports an outage fault (Table 7). It is kept out of the statistical alarm stream on purpose: a broken modem must not consume the detectors' budget.
+
+\item \textbf{Coverage is auditable.} \texttt{results/\allowbreak{}excluded\_\allowbreak{}pairs.csv} names every (site,
+variable) pair that cannot be modelled and why; no results table ever carries an error message in place of a result.
+
+\item \textbf{Every metric is checked.} \texttt{python -\allowbreak{}m tsfdi verify} re-\allowbreak{}reads
+\texttt{expected\_\allowbreak{}results.json} (44 metrics) with per-\allowbreak{}metric tolerances; \texttt{pytest} covers the SP chain, the detectors, the injector, provenance, the streaming path, the diagnosis rules and the report builder.
+
+\end{itemize}
+
+\clearpage
+\section*{Compliance with the challenge brief}
+This page maps the brief's requirements to the artefacts in this repository, states which public datasets are used and why they are treated as the reference, and defines the "standard evaluation scenario" precisely enough that a reader can reproduce it without reading the code.
+
+Track: \textbf{Track 2 — False-\allowbreak{}Data Injection} (silent failure in in-\allowbreak{}situ sensing). Segment: ground/\allowbreak{}in-\allowbreak{}situ sensing (surface stations) with a reanalysis reference.
+
+\section*{1. The six official content deliverables}
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{l>{\raggedright\arraybackslash}p{0.097\linewidth}>{\raggedright\arraybackslash}p{0.828\linewidth}}
+\toprule
+\# & Brief's deliverable & Where it is \\
+\midrule
+\endfirsthead
+\toprule
+\# & Brief's deliverable & Where it is \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+1 & Threat model \& segment analysis & \texttt{docs/\allowbreak{}threat\_\allowbreak{}model.md} (assets, system boundary, A0–A3 adversary hierarchy, attacker knowledge, calibration/\allowbreak{}test split, and an explicit "what this system does not claim"); summarised in \texttt{docs/\allowbreak{}report.md} §1. \\
+2 & Platform /\allowbreak{} architecture /\allowbreak{} trust anchor & \texttt{docs/\allowbreak{}report.md} §3 and \texttt{docs/\allowbreak{}design.md}; the L0–L6 pipeline is \texttt{src/\allowbreak{}tsfdi/\allowbreak{}pipeline.py}; the trust anchor is \texttt{src/\allowbreak{}tsfdi/\allowbreak{}provenance/\allowbreak{}} (Ed25519 per-\allowbreak{}record signature + SHA-\allowbreak{}256 hash chain + signed component manifest, \texttt{data/\allowbreak{}bundle/\allowbreak{}MANIFEST.sig}). A software anchor is used, which the brief explicitly allows. \\
+3 & Signal /\allowbreak{} image processing & \texttt{src/\allowbreak{}tsfdi/\allowbreak{}sp/\allowbreak{}} — conditioning (SP1), robust seasonal expectation with an optional gradient-\allowbreak{}boosted correction (SP2), AR whitening (SP3), shape features (SP4), rank-\allowbreak{}Gauss transform for precipitation (SP5), spectral fingerprint (SP6); \texttt{docs/\allowbreak{}report.md} §4. \\
+4 & AI or statistical detection & \texttt{src/\allowbreak{}tsfdi/\allowbreak{}detect/\allowbreak{}} — D1 step/\allowbreak{}CUSUM, D2 drift/\allowbreak{}CUSUM/\allowbreak{}EWMA/\allowbreak{}slope, D3 replay (matched filter, exact repeat, block contrast), D4 single-\allowbreak{}sample excursion, D6 spectral fingerprint, D7 availability envelope; block-\allowbreak{}bootstrap threshold calibration at a chosen false-\allowbreak{}alarm budget; baselines B0–B3 in \texttt{src/\allowbreak{}tsfdi/\allowbreak{}eval/\allowbreak{}baselines.py}. \\
+5 & Adversarial validation \& response & \texttt{src/\allowbreak{}tsfdi/\allowbreak{}attacks/\allowbreak{}} (A0–A3 lab, five attack families and four fault families) and \texttt{src/\allowbreak{}tsfdi/\allowbreak{}diagnose/\allowbreak{}} (evidence extraction, rule table, confidence band, action ladder, decision impact); \texttt{docs/\allowbreak{}report.md} §5–§6. \\
+6 & Documentation & \texttt{docs/\allowbreak{}report.md} + \texttt{docs/\allowbreak{}report.pdf} (report), \texttt{docs/\allowbreak{}report\_\allowbreak{}appendix.md} + \texttt{docs/\allowbreak{}appendix.pdf} (full tables), \texttt{docs/\allowbreak{}reproduce.md} (every number, with the command that produces it), \texttt{docs/\allowbreak{}data\_\allowbreak{}sources.md}, \texttt{docs/\allowbreak{}state\_\allowbreak{}of\_\allowbreak{}the\_\allowbreak{}art.md}, \texttt{README.md}, and the run log in \texttt{results/\allowbreak{}experiments\_\allowbreak{}meta.json}. \\
+\end{longtable}
+}
+
+\section*{2. Datasets, and why they are the reference}
+The brief requires "the official reference datasets" and "the common standard evaluation scenario" but the 2-\allowbreak{}page call does not name either. We therefore use two national/\allowbreak{}international \emph{authoritative} archives, chosen so that the sensor and the reference are produced by independent organisations — otherwise a reference comparison is circular:
+
+\begin{center}
+\resizebox{\textwidth}{!}{%
+\tiny
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lrrr}
+\toprule
+Role & Source & Product /\allowbreak{} endpoint & Licence \\
+\midrule
+Sensor (the data under attack) & NOAA NCEI GHCN-\allowbreak{}Daily via the Access Data Service & \texttt{daily-\allowbreak{}summaries}, \texttt{TMAX}, \texttt{TMIN}, \texttt{PRCP}, metric units, QC attributes retained & US Government open data (public domain) \\
+Independent reference & NASA POWER (LARC) daily point API, community \texttt{AG} & \texttt{T2M}, \texttt{T2M\_\allowbreak{}MAX}, \texttt{T2M\_\allowbreak{}MIN}, \texttt{RH2M}, \texttt{WS2M}, \texttt{PRECTOTCORR}, \texttt{ALLSKY\_\allowbreak{}SFC\_\allowbreak{}SW\_\allowbreak{}DWN}, \texttt{CLRSKY\_\allowbreak{}SFC\_\allowbreak{}SW\_\allowbreak{}DWN} & NASA open data \\
+\bottomrule
+\end{tabular}}
+\end{center}
+
+Twelve stations in nine countries (\texttt{config/\allowbreak{}sites.yaml}), 34 (site, variable) pairs, 2015–2019 for calibration and 2020–2024 for evaluation. The exact request URLs, the missing-\allowbreak{}value conventions (\texttt{-\allowbreak{}999.0} for POWER, omitted days for GHCN) and the QC-\allowbreak{}flag handling are in \texttt{docs/\allowbreak{}data\_\allowbreak{}sources.md}; the fetched payload is committed and hash-\allowbreak{}pinned (\texttt{data/\allowbreak{}bundle/\allowbreak{}MANIFEST.sha256} + \texttt{MANIFEST.sig}), so every number in the report is reproducible offline.
+
+\textbf{If the organisers name a different official dataset or a prescribed scenario, that is a substitution of data, not of method:} \texttt{src/\allowbreak{}tsfdi/\allowbreak{}data\_\allowbreak{}fetch.py} + \texttt{config/\allowbreak{}sites.yaml} define the only two places where a source is named, and the pipeline downstream reads \texttt{data/\allowbreak{}bundle/\allowbreak{}} only. Nothing in \texttt{sp/\allowbreak{}}, \texttt{detect/\allowbreak{}}, \texttt{diagnose/\allowbreak{}} or \texttt{eval/\allowbreak{}} refers to a provider.
+
+\section*{3. The standard evaluation scenario (the common scenario, defined)}
+\begin{itemize}
+\item \textbf{Injection geometry.} Onset uniform in the evaluation period with a 120-\allowbreak{}day
+warm-\allowbreak{}up margin and 60 days of attack remaining; magnitudes in units of the robust residual scale $\sigma$ of the clean series (so "1 $\sigma$" means the same thing for temperature in °C and rain in mm).
+
+\item \textbf{Standard profile} (the specification's 12 \% /\allowbreak{} 15 \% /\allowbreak{} 7-\allowbreak{}day profile, the
+headline of Table 1): a 12 \% step (as a percentage of the site's seasonal range for temperature, multiplicative for precipitation), a 15 \% ramp with a 90-\allowbreak{}day rise and 60-\allowbreak{}day hold, and a 7-\allowbreak{}day replay of a window 30–400 days earlier.
+
+\item \textbf{Families.} step, ramp, replay, scaling, noise-\allowbreak{}shaped (adversarial), plus
+stuck-\allowbreak{}at, dropout, spike and slow calibration drift (faults).
+
+\item \textbf{Adversary levels.} A0 (scripted, knows the variable but not the detector),
+A1 (knows the detector family and the calibration period), A2 (adaptive: probes the detector and optimises inside the false-\allowbreak{}alarm budget), A3 (key compromise /\allowbreak{} provenance bypass, analysed rather than assumed away).
+
+\item \textbf{Operating point.} Block-\allowbreak{}bootstrap thresholds at 1.0 alarm per sensor-\allowbreak{}year,
+with the 0.1 /\allowbreak{} 0.5 /\allowbreak{} 1.0 /\allowbreak{} 2.0 budgets also published (\texttt{results/\allowbreak{}calibration.csv}).
+
+\item \textbf{Held out from every tuning decision.} Stations MIAMI\_\allowbreak{}INTL and NAVACERRADA;
+attack families scaling, noise-\allowbreak{}shaped and A2. Calibration uses 2015–2019 and evaluation 2020–2024, so the split is temporal as well as spatial.
+
+\item \textbf{Parameters} are not prose: they are \texttt{config/\allowbreak{}attacks.yaml} (families,
+magnitudes, onset rules, held-\allowbreak{}out list) and \texttt{config/\allowbreak{}detectors.yaml} (calibration, cooldown, budgets). Changing the scenario means changing those two files and re-\allowbreak{}running \texttt{make all}.
+
+\end{itemize}
+
+\section*{4. What the brief asks to be reported, and where each number is}
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.180\linewidth}>{\raggedright\arraybackslash}p{0.773\linewidth}}
+\toprule
+Asked & Reported in \\
+\midrule
+\endfirsthead
+\toprule
+Asked & Reported in \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Detection quality & Table 1 (standard profile), Table 2 (by family and magnitude), Table 2b (replay by length), Table 6 (cross-\allowbreak{}site); \texttt{docs/\allowbreak{}report.md} §5–§6. \\
+False alarms & Table 3 (per pair, events per sensor-\allowbreak{}year, including natural extremes), Table 7 (availability), and the baseline comparison Table 6.5/\allowbreak{}6.6. \\
+Latency & Table 5 (per-\allowbreak{}layer, per reading, streaming path) — 14.78 ms/\allowbreak{}reading end-\allowbreak{}to-\allowbreak{}end on 2 vCPU. \\
+Memory & Table 5 (peak traced memory, 321 MB). \\
+Security overhead & \texttt{results/\allowbreak{}bench\_\allowbreak{}provenance.csv} — sign/\allowbreak{}verify µs per record, bytes added, throughput ratio; \texttt{docs/\allowbreak{}report.md} §3 and §7. \\
+Feasibility, affordability, local execution & \texttt{docs/\allowbreak{}reproduce.md} (runtime table, 2-\allowbreak{}vCPU/\allowbreak{}4 GB target, no GPU, no network after the bundle), \texttt{docs/\allowbreak{}report.md} §7. \\
+\end{longtable}
+}
+
+\section*{5. Rules}
+\begin{itemize}
+\item Student Branch only, one track, $\leq$ 5 members — organisational, not recorded here.
+\item Phase 1 is anonymous: no names, unit names, logos or identifying repository
+metadata. The repository is committed under a neutral identity, contains no personal paths, e-\allowbreak{}mail addresses or institutional names (checked by grep over every tracked text file), and the provenance keys under \texttt{data/\allowbreak{}keys/\allowbreak{}} are not committed while the public anchor is.
+
+\item Authentic public data only: both sources above are open and unmodified; the
+injections are synthetic and are generated from the clean series at run time, never stored as if they were observations.
+
+\end{itemize}
+
+\clearpage
+\section*{Threat model}
+This document states what the system defends, against whom, and — with equal care — what it does not defend. It is the contract that the code is written against; every claim below is traceable to a module and to a test.
+
+\section*{1. Assets and what "silent failure" means}
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.184\linewidth}>{\raggedright\arraybackslash}p{0.393\linewidth}>{\raggedright\arraybackslash}p{0.358\linewidth}}
+\toprule
+Asset & Why it matters & Where it lives \\
+\midrule
+\endfirsthead
+\toprule
+Asset & Why it matters & Where it lives \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+The reported value of a surface observation on a given day & It enters reanalysis, agronomic advisories, frost/\allowbreak{}heat warnings and, indirectly, insurance and water management & \texttt{data/\allowbreak{}bundle/\allowbreak{}*.csv} (GHCN-\allowbreak{}Daily station series) \\
+The trusted reference series & Every comparison in the pipeline is relative to it; poisoning it defeats detection without touching the sensor & \texttt{data/\allowbreak{}bundle/\allowbreak{}*.csv} + signed \texttt{MANIFEST.sha256} \\
+The calibration model (expectation, whitening, thresholds) & The false-\allowbreak{}alarm budget is only meaningful if the model was fitted on clean data & \texttt{results/\allowbreak{}cache/\allowbreak{}models/\allowbreak{}*.pkl}, fitted on 2015-\allowbreak{}2019 only \\
+The provenance key & If stolen, an outsider becomes an insider (A3) & \texttt{data/\allowbreak{}keys/\allowbreak{}anchor.pem} (never committed) \\
+\end{longtable}
+}
+
+\textbf{Silent failure} is the central danger of this challenge and it has a precise meaning here: \emph{the system reports a value that was never measured, the value looks plausible, and nobody notices.} It is silent in three distinct ways, and the architecture treats them separately:
+
+\begin{enumerate}
+\item \textbf{Silent for the analyst} — no exception, no missing-\allowbreak{}data flag, no
+out-\allowbreak{}of-\allowbreak{}range value. This is what L0 (provenance) and L1-\allowbreak{}L3 (statistics) address.
+
+\item \textbf{Silent for the statistician} — the corrupted series still passes the
+ordinary quality-\allowbreak{}control checks (range, monotonicity of TMAX/\allowbreak{}TMIN, distribution of the month), because the attacker simply copies a plausible number. This is why the design compares the sensor against an \emph{independent reference} rather than against the sensor's own history (SP2, D1, D2).
+
+\item \textbf{Silent in the evaluation} — a detector that alarms on everything, or a
+metric that rewards the detector for alarming early, hides the failure. This is why thresholds are calibrated to a false-\allowbreak{}alarm budget and why the metrics are per-\allowbreak{}attack-\allowbreak{}type with detection delay and false alarms reported together (section 12 of the specification), never point-\allowbreak{}adjusted F1.
+
+\end{enumerate}
+
+\section*{2. System boundary and trust assumptions}
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+                 untrusted                              trusted (hash-pinned)
+   +-------------------------------+        +--------------------------------------+
+   | station / sensor / logger     |        | NASA POWER reanalysis reference      |
+   | signs each reading (Ed25519)  |        | (independent instrument + model)     |
+   +---------------+---------------+        +------------------+-------------------+
+                   |                                            |
+              L0 provenance (signature, sequence, chain)        |
+                   |                                            |
+                   +----------------> L1 SP1-SP3 ---------------+
+                                          |
+                                   L2 detectors (D1-D6)
+                                          |
+                                   L3 consistency / fingerprint
+                                          |
+                                   L4 diagnosis (rule table + logistic regression)
+                                          |
+                                   L5 action ladder + decision impact
+\end{Verbatim}
+
+Trusted: the reanalysis reference (pinned by hash), the calibration-\allowbreak{}period model, the verification key, and the clock. Untrusted: everything arriving from the station, including the \emph{timestamps} (bounded by a skew check, not trusted blindly) and the fact that a reading was taken at all.
+
+\section*{3. Adversary hierarchy}
+The hierarchy follows section 9 of the specification. For each level the table gives the capability assumed, what it defeats, and which layer is expected to catch it. The last column is the honest answer, not an aspiration.
+
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.085\linewidth}>{\raggedright\arraybackslash}p{0.143\linewidth}>{\raggedright\arraybackslash}p{0.100\linewidth}>{\raggedright\arraybackslash}p{0.131\linewidth}>{\raggedright\arraybackslash}p{0.438\linewidth}}
+\toprule
+Level & Capability & What it defeats & Detected by & Honest statement \\
+\midrule
+\endfirsthead
+\toprule
+Level & Capability & What it defeats & Detected by & Honest statement \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\textbf{A0 naive} & Can change values in transit or in the logger; no knowledge of the system & Range and format checks & L2 statistics (D1-\allowbreak{}D4) & Easy: the bias is large and inconsistent with the reference. \\
+\textbf{A1a reference copy} & Knows the reference is public; replaces the reading with a copy of it (through the calibration regression) & The residual becomes \textasciitilde{}0, so any residual test sees nothing & D6 fingerprint ("too clean"), D3 if the copy is exact, and the residual variance ratio & Hard for the mean-\allowbreak{}shift detectors by construction: the \emph{point} of A1a is to make the residual small. The fingerprint is the countermeasure, which is why SP6 exists. \\
+\textbf{A1b reference copy + white noise} & As A1a, with noise matched to the calibration residual variance & The variance ratio, if the noise is matched well & D6 (band powers and ACF of the noise vs the real residual), D3 & The residual scale is right but the \emph{spectral shape} is not: weather residuals are red, white noise is flat. \\
+\textbf{A1c reference copy + AR-\allowbreak{}matched noise} & Matches the residual ACF as well & Band powers and ACF of the residual & D6 coherence and cross-\allowbreak{}band structure; D1 only if the bias is large enough to matter & \textbf{Expected to be hard.} An adversary who reproduces the sensor's own noise model from the public reference is, statistically, indistinguishable from the sensor on the residual channel. We report what remains (coherence with the reference at the low band, temporal persistence of a copied day) and we do not claim more. \\
+\textbf{A2 detector-\allowbreak{}aware, white-\allowbreak{}box} & Reads the detector thresholds and optimises a bias path that keeps every statistic below its threshold & Everything, in the limit & Nothing, in the limit: this is a game against the budget & The correct response is to measure the \emph{damage at a fixed false-\allowbreak{}alarm budget} (Urbina-\allowbreak{}style metric, section 12) instead of claiming detection. If a small bias is undetectable, the report must say at what magnitude detection begins (the detectability frontier, Figure 1). \\
+\textbf{A2 detector-\allowbreak{}aware, black-\allowbreak{}box} & Sees only alarm /\allowbreak{} no alarm, adapts by bisection & Same as A2 white-\allowbreak{}box, with a slower ramp & The \emph{rate} of change: a slow ramp is the hardest case for CUSUM (D2 exists for this) & Reported as damage-\allowbreak{}vs-\allowbreak{}budget curve. \\
+\textbf{A3 compromised signer} & Holds the signing key: valid signatures on invented values & L0 entirely & L1-\allowbreak{}L5 only & Provenance raises the bar from "anyone on the network" to "anyone with code execution on the host". The architecture must therefore never \emph{depend} on L0 for value integrity, and it does not: L0 is orthogonal to L1-\allowbreak{}L5. \\
+\textbf{Outsider} (no key) & Can replay a signed record, tamper, delete, reorder, or push a stale record & Naive hash-\allowbreak{}only schemes & L0: \texttt{BadSignature}, \texttt{ReplayOrReorder}, \texttt{Gap}, \texttt{ChainBreak} & Fully solved, and tested in \texttt{tests/\allowbreak{}test\_\allowbreak{}provenance.py}. \\
+\end{longtable}
+}
+
+A0 is the standard profile (12 \% step, 15 \% ramp, L = 7 replay). A1a/\allowbreak{}b/\allowbreak{}c and A2 are implemented in \texttt{attacks/\allowbreak{}adaptive.py} and evaluated in Table 2 and Figure 2.
+
+\section*{4. Attacker knowledge and the calibration/\allowbreak{}test split}
+The attacker is assumed to know: the public reference, the general structure of the system (a residual test against a reference), and the standard profile. The attacker is \emph{not} assumed to know the calibration coefficients, the thresholds, or the fitted AR parameters unless the A2 level is being evaluated — in which case it is explicitly granted white-\allowbreak{}box access to the detector statistics.
+
+Defence against overfitting: calibration uses 2015-\allowbreak{}2019 only, model selection never sees 2020-\allowbreak{}2024, two sites (MIAMI\textbackslash{}\_\allowbreak{}INTL and NAVACERRADA) are held out from every tuning decision, and the attack families \texttt{scaling}, \texttt{noise\_\allowbreak{}shaped} and A2 are held out from all tuning and appear only in the evaluation.
+
+\section*{5. What this system does \textbf{not} claim}
+These are stated up front because a threat model that only lists strengths is marketing:
+
+\begin{enumerate}
+\item \textbf{No physical-\allowbreak{}truth verification.} Without an independent reference there is
+no detection at all; a site with a bad reference (low coherence, see \texttt{results/\allowbreak{}gonogo.md}) gets correspondingly weaker claims. This is measured per site, not assumed.
+
+\item \textbf{No protection against A3 with a slow, small bias.} If the signer is
+compromised and the bias is below the minimum detectable magnitude for that (site, variable) at the operating budget, the pipeline will not detect it. The minimum detectable magnitude is reported per pair.
+
+\item \textbf{No protection against an adversary who also corrupts the reference.} The
+reference is pinned by hash, so \emph{editing} it is detected; \emph{choosing a different} reference is a governance problem, out of scope.
+
+\item \textbf{Precipitation is harder than temperature}, for a documented reason: the
+reference product correlates weakly with a point gauge on daily rain, the variable is zero-\allowbreak{}inflated, and the residual distribution is not Gaussian in any simple coordinate. The pipeline uses a rank-\allowbreak{}Gauss transform (SP3) for precipitation and calibrates its false-\allowbreak{}alarm budget separately (section "per-\allowbreak{}variable budgets" in \texttt{docs/\allowbreak{}design.md}). Claims for PRCP are restricted accordingly.
+
+\item \textbf{The rule table can output "undetermined".} A stuck-\allowbreak{}at fault and a
+constant replay are identical in the data; the system says so rather than guessing, and the confusion matrix reports that class.
+
+\item \textbf{No LLM in the loop.} Explanations are templated from the evidence
+dictionary, so the same alarm always produces the same text (auditable).
+
+\end{enumerate}
+
+\clearpage
+\section*{Design decisions}
+The specification marks a number of choices \textbf{[Default]}. This document records every place where the implementation differs from a default, or makes a choice the specification left open, together with the measurement or argument that forced it. Nothing here is a matter of taste: each entry was a bug, a measured failure, or a cost that had to be paid somewhere.
+
+\section*{1. Data: an untrusted station and an independent reanalysis reference}
+The task defines false-\allowbreak{}data injection on in-\allowbreak{}situ sensors. The instantiation used here is:
+
+\begin{itemize}
+\item \textbf{Untrusted ("sensor") road} — GHCN-\allowbreak{}Daily station records (\texttt{TMAX}, \texttt{TMIN},
+\texttt{PRCP}), quality-\allowbreak{}flag clean, 2015-\allowbreak{}01-\allowbreak{}01 to 2024-\allowbreak{}12-\allowbreak{}31. These are the values an attacker can falsify.
+
+\item \textbf{Trusted (reference) road} — NASA POWER daily reanalysis at the station
+coordinates (\texttt{T2M\_\allowbreak{}MAX}, \texttt{T2M\_\allowbreak{}MIN}, \texttt{PRECTOTCORR}). A different instrument, a different processing chain, and an independent provider, which is what makes it a reference rather than a copy.
+
+\end{itemize}
+
+Both roads are pinned in a signed manifest (\texttt{data/\allowbreak{}bundle/\allowbreak{}MANIFEST.sha256} signed with Ed25519); the pipeline refuses to run if any hash differs. Cross-\allowbreak{}site generalisation is possible because 12 stations in 6 countries and 4 climate zones are bundled (Tunisia, Egypt, Spain, France, Germany, Netherlands, Finland, Norway, United States), with two sites held out from all tuning.
+
+\textbf{Measured justification} (\texttt{results/\allowbreak{}gonogo.md}): the sensor-\allowbreak{}reference correlation is 0.93-\allowbreak{}0.99 for temperature, so the reference carries real information about the day; for precipitation it is much weaker, which is the reason for the restricted claims on PRCP (§6 below).
+
+\section*{2. Completeness: design for gaps instead of hiding them}
+The specification's default asks for $\geq$ 95 \% complete records. On GHCN-\allowbreak{}Daily this holds for the European and North-\allowbreak{}American stations in the bundle but \textbf{not} for the Tunisian, Egyptian and Saharan ones, where \texttt{TMAX} is reported on a 60-\allowbreak{}75 \% duty cycle (\texttt{TMIN} is denser). Dropping the North-\allowbreak{}African sites would have removed exactly the region the challenge is motivated by, so the pipeline was designed for gaps. Five consequences, all implemented and tested:
+
+\begin{enumerate}
+\item \textbf{Nothing is interpolated.} A missing day is a hole with a flag. Detector
+windows use the samples that exist (\texttt{n\_\allowbreak{}eff}), and a window with fewer than two samples produces \texttt{NaN}, not a guess.
+
+\item \textbf{The AR filter uses the state-\allowbreak{}space convention.} A missing residual enters
+the recursion at its conditional mean; the filter state continues. Skipping the recursion whenever a lag is missing would throw away 0.65\textasciicircum{}6 $\approx$ 7 \% of the samples for an AR(5) on a 65 \%-\allowbreak{}complete station.
+
+\item \textbf{Prefix-\allowbreak{}sum statistics are gap-\allowbreak{}aware.} Every windowed statistic (mean
+shift, slope) is computed from sums over \emph{available} pairs, verified against a brute-\allowbreak{}force implementation on series with 30-\allowbreak{}40 \% missing days (\texttt{tests/\allowbreak{}test\_\allowbreak{}detectors.py}).
+
+\item \textbf{The AR order is chosen on a common sample.} With 35 \% missing days the
+intersection of the lag-\allowbreak{}validity masks collapses (CARTHAGE \texttt{TMIN}: 1015 usable calibration residuals, 554 rows with two consecutive valid days, 152 with four). AIC is therefore computed on the longest order whose common sample still meets a floor (300 rows or 15 \% of the pairs); otherwise the comparison is between likelihoods computed on different samples and is not a comparison at all. This is stated in the code and in \texttt{results/\allowbreak{}gonogo.md}.
+
+\item \textbf{Alarms are gated on validity.} A missing day cannot alarm, but the
+statistic series keeps its calendar meaning (a 7-\allowbreak{}day window is still seven calendar days, not seven observations).
+
+\end{enumerate}
+
+\section*{3. SP3 whitening: three stages, one of them not in the specification}
+The specification's SP3 is "AR(p) whitening plus a seasonally varying robust sigma". Two problems appeared when it was applied to real data, and both were fixed at the modelling level rather than by tuning the threshold:
+
+\begin{itemize}
+\item \textbf{AIC was not comparing like with like.} The order-\allowbreak{}0 model was scored with a
+MAD-\allowbreak{}based robust scale and the order-\allowbreak{}p models with a standard deviation. For a heavy-\allowbreak{}tailed residual, MAD is systematically smaller, so AIC always picked p = 0 and the autocorrelation went straight into CUSUM (measured: lag-\allowbreak{}1 ACF of z = 0.29 on CABAUW \texttt{TMAX}). Fixed by scoring every order on the same rows with the maximum-\allowbreak{}likelihood innovation scale.
+
+\item \textbf{Precipitation residuals are not Gaussian in any linear coordinate.} 70 \% of
+days are dry, so the residual has a point mass at zero and a long right tail; a MAD-\allowbreak{}standardised residual gives a z series with empirical standard deviation 5-\allowbreak{}7 and a false-\allowbreak{}alarm rate of 13-\allowbreak{}15 per sensor-\allowbreak{}year against a budget of 1. The fix is a \textbf{rank-\allowbreak{}Gauss (empirical probability-\allowbreak{}integral) transform}, fitted on the calibration period only, applied before the AR filter: \texttt{w = Phi\textasciicircum{}-\allowbreak{}1(F\_\allowbreak{}cal(r))}, extrapolated linearly beyond the calibration range and capped at |\allowbreak{}w|\allowbreak{} = 8. It is monotone, so a positive bias remains a positive shift, and it is enabled per variable kind (\texttt{sp.rank\_\allowbreak{}gauss\_\allowbreak{}kinds: [multiplicative]}). After the transform the precipitation z series has unit scale and a false-\allowbreak{}alarm rate in line with temperature (see \texttt{docs/\allowbreak{}report.md}, Table 3).
+
+\end{itemize}
+
+The rank-\allowbreak{}Gauss transform is therefore \textbf{an addition to the specification's SP3}, not a deviation from a default, and it is included in the ablation so that its contribution is measured rather than asserted.
+
+\section*{3b. Two things the specification's SP3 could not do, and what replaced them}
+\begin{itemize}
+\item \textbf{The sensor/\allowbreak{}reference bias is not stationary.} Measured annual mean residuals
+on JENDOUBA \texttt{TMAX} move from +0.24 °C (2015) to $-$0.90 °C (2024) — about one $\sigma$ over the record — because the station (instrument, exposure, local site) and the reanalysis both drift. A drift detector whose threshold was calibrated on 2015-\allowbreak{}2019 sees that as a permanent bias and alarms for years: the measured false-\allowbreak{}alarm rate was 6 per sensor-\allowbreak{}year against a budget of 1, and the drift CUSUM alone contributed 4 per year, on several sites. No stationary threshold can fix a non-\allowbreak{}stationary statistic, so SP3 now removes a \textbf{causal trailing robust bias} before whitening: the median residual of the previous 365 days, ending 30 days before the current day. It is causal (legal in a stream), it cannot be dragged by an ongoing attack (median, and a margin), and its cost is explicit — a bias that develops slower than the window chases its own baseline. That is exactly the A2 black-\allowbreak{}box strategy, which is why the ramp family is evaluated down to 1 $\sigma$ and Figure 2 reports damage against the false-\allowbreak{}alarm budget.
+
+\item \textbf{The fingerprint distance is not stationary either.} The Mahalanobis distance
+of the spectral fingerprint has a median of \textasciitilde{}3.5 in 2015-\allowbreak{}2019 and \textasciitilde{}5.5 in 2020-\allowbreak{}2024 for the \emph{same, honest} station: the relationship between a point station and a reanalysis grid cell changes over a decade. A threshold calibrated on the first period therefore fired 2.4 times per sensor-\allowbreak{}year on every site, for both variables, with nothing wrong. D6's statistic is now \textbf{self-\allowbreak{}normalised}, \texttt{d\_\allowbreak{}t /\allowbreak{} median(d over the previous two years, excluding the last 30 days)}, which keeps the detector's purpose (a \emph{change} in the fingerprint) and removes the stationarity assumption. This is a deviation from "robust Mahalanobis distance to the calibration distribution" as literally specified; the reason is measured, not aesthetic, and the limitation it introduces (a change slower than the two-\allowbreak{}year baseline is invisible to this channel) is stated in the code.
+
+\end{itemize}
+
+\section*{3c. Detectors that only work on the right kind of variable}
+The specification defines detectors per \emph{target} (step, drift, replay), not per variable, and two of them are simply degenerate on zero-\allowbreak{}inflated data. Both degeneracies were found by measuring false alarms on clean data, and both are fixed by restricting the channel to the variable kinds where it is identifiable — not by raising a threshold until the number looks acceptable:
+
+\begin{itemize}
+\item \textbf{D3 matched filter (NCC).} A precipitating day is a spike; a window of seven
+days is mostly a \emph{sparse spike pattern}. Two windows whose spikes fall on the same offsets correlate almost perfectly after centring, whatever the amplitudes, so the statistic saturates and fires 12-\allowbreak{}14 times per sensor-\allowbreak{}year on honest data. The NCC channel is therefore restricted to \texttt{temperature} (\texttt{detectors.D3\_\allowbreak{}replay.ncc\_\allowbreak{}kinds}), and precipitation keeps the two channels that remain identifiable: the exact-\allowbreak{}repeat test (a copied wet sequence, at a 14-\allowbreak{}day window instead of 7, because a sparse "which days were wet" pattern recurs by chance in five years) and the reference-\allowbreak{}contrast test \texttt{D3\_\allowbreak{}block\_\allowbreak{}contrast}.
+
+\item \textbf{Degenerate windows in the other channels.} A window with fewer than three
+distinct quantised values carries no shape, and it repeats itself constantly (seven dry days is an ordinary event). \texttt{replay\_\allowbreak{}exact}, \texttt{replay\_\allowbreak{}max\_\allowbreak{}ncc} and the runtime \texttt{ReplayDetector} all skip such windows. A constant run is the \emph{stuck-\allowbreak{}at} fault's signature and is D4's job; counting it as a replay double-\allowbreak{}counted it and inflated the precipitation false-\allowbreak{}alarm rate.
+
+\end{itemize}
+
+With these three changes (trailing bias, self-\allowbreak{}normalised fingerprint, degenerate-\allowbreak{} window exclusion) the measured false-\allowbreak{}alarm rates moved from 13-\allowbreak{}15/\allowbreak{}yr (PRCP) and 2.2-\allowbreak{}6.4/\allowbreak{}yr (TMAX) to the values in \texttt{docs/\allowbreak{}report.md}, Table 3.
+
+\section*{3d. One definition of an alarm event}
+The vectorised evaluation and the streaming pipeline originally counted events with two slightly different rules: the evaluation used a Schmitt trigger (an event requires the alarm to have \emph{cleared}, so a persistent exceedance is one event), the pipeline only enforced the cooldown (so a persistent exceedance produced one event every 15 days). Both are defensible; having both is not. The rule now lives in a single class, \texttt{detect.statistics.SchmittAlarm}, which both paths instantiate, and \texttt{tests/\allowbreak{}test\_\allowbreak{}pipeline.py} asserts that the two paths produce the \emph{same set} of alarm days on the same series. The specification's "an alarm latches until a documented reset rule clears it" is exactly this rule.
+
+\section*{3e. Three more guards that the data demanded}
+All three are causal, all three are ablated or measured, and all three were added only after a measurement showed the unguarded version failing.
+
+\begin{itemize}
+\item \textbf{Gap reset after a long outage.} A 300-\allowbreak{}day outage followed by a report is not
+"yesterday was missing": the AR recursion would predict today's value from a state that is a year old. The next p+1 observations after a run of more than 7 missing days therefore carry no \texttt{z}. Short gaps keep the state-\allowbreak{}space convention, which is what makes a 65 \%-\allowbreak{}complete station usable at all. (The bundle contains a station — KHARGA — that reports 12 days in all of 2021, so this is not hypothetical.)
+
+\item \textbf{Bounded causal scale guard.} The robust scale of \texttt{z} is 4 \% larger in the test
+epoch on the median pair and up to 16 \% on some, and a 99.9 \%-\allowbreak{}quantile threshold amplifies a 10 \% scale inflation by roughly a factor of three. Dividing \texttt{z} by its trailing 365-\allowbreak{}day MAD (30-\allowbreak{}day margin, clipped to 0.75–1.5) removes the drift without using a single test-\allowbreak{}period day for fitting; the clip keeps a pathological window from collapsing the statistic.
+
+\item \textbf{Persistent shift → re-\allowbreak{}baseline, not re-\allowbreak{}alarm.} When the residual stays elevated
+for $\geq$ 180 days with no replay, fingerprint or provenance evidence, the rule table reports a \emph{fault} (\texttt{code="persistent\_\allowbreak{}shift"}) and the action ladder recommends a re-\allowbreak{}baseline (SUSPEND). Calling a two-\allowbreak{}year level shift a 600-\allowbreak{}day attack is technically possible and operationally useless.
+
+\end{itemize}
+
+\section*{4. SP5 matched filter: match the anomaly, not the level}
+The specification says "z-\allowbreak{}normalised cross-\allowbreak{}correlation of the last L samples against every earlier window of the sensor's own history". Applied to the raw level, this detector is \textbf{dead}: a strongly seasonal series repeats its own annual cycle, so a 7-\allowbreak{}day window matches the same calendar window a year earlier with NCC $\approx$ 1 and the detector alarms every day (measured on synthetic and real data alike; the calibrated threshold saturates at 1.0, which is the signature of a detector that cannot discriminate). The matched filter therefore runs on the \textbf{anomaly road} \texttt{a\_\allowbreak{}t = y\_\allowbreak{}t -\allowbreak{} seasonal\_\allowbreak{}baseline\_\allowbreak{}t} (SP2 harmonics only, no reference, no look-\allowbreak{}ahead), which removes the deterministic annual cycle and keeps the day-\allowbreak{}to-\allowbreak{}day shape that a replay actually copies. The exact-\allowbreak{}repetition channel still tests the \emph{raw} values at the data quantisation (0.1 °C /\allowbreak{} 0.1 mm), because that is what a replay attacker copies.
+
+\section*{5. False-\allowbreak{}alarm calibration: what changed and why the numbers are what they are}
+\begin{itemize}
+\item **Block bootstrap, as specified (block = 30 days), but 300 replicates instead
+of 2000**, because the calibration is run for 14 detectors $\times$ 34 (site, variable) pairs $\times$ 4 budgets on a 2-\allowbreak{}vCPU machine and 2000 replicates cost a factor 6.7 more for a reduction in Monte-\allowbreak{}Carlo error from 5.8 \% to 2.2 \% on the \emph{rate} (1/\allowbreak{}√N). The Monte-\allowbreak{}Carlo error is reported with every budget rather than hidden.
+
+\item **The two replay detectors are calibrated on phase-\allowbreak{}randomised surrogates, not
+on the block bootstrap.** A circular block bootstrap duplicates blocks, so the surrogate series contains exact repeats that the real series does not: it fabricates precisely the pattern D3 exists to detect, and the calibrated threshold would be wrong in the \emph{dangerous} direction. Phase randomisation preserves the power spectrum (hence the autocorrelation) and destroys subsequence repetition, which is the correct null. This is a documented deviation from the default and it is the reason D3 has a usable threshold.
+
+\item \textbf{The suite-\allowbreak{}level budget is split across detectors (Bonferroni)} instead of
+being granted to each detector. With 14 detectors and a 1-\allowbreak{}per-\allowbreak{}year budget, granting 1/\allowbreak{}year to each would give $\approx$14/\allowbreak{}year at the suite level. Splitting gives a suite-\allowbreak{}level guarantee that is slightly conservative because the detectors are correlated (they share z), which is the right direction to err.
+
+\item \textbf{The threshold search is restricted to the region above the null median.}
+Below it, the statistic is in alarm on most days, and with the latching event rule a permanently-\allowbreak{}alarmed detector counts as \emph{one} event, so the "rate" loses monotonicity and bisection converges to $\approx$0 (a threshold of zero that alarms once and then stays latched). This was a real bug, found by a test asserting that the achieved rate is close to the budget.
+
+\item \textbf{Alarms are events, not samples.} An alarm latches and is reset by a
+documented rule (\texttt{calibration.cooldown\_\allowbreak{}days}); the false-\allowbreak{}alarm rate is events per sensor-\allowbreak{}year. Counting alarmed \emph{samples} inflated the measured false-\allowbreak{}alarm rate by up to 7$\times$ during development, and the latching rule is what makes the budget comparable across detectors with different memory.
+
+\item \textbf{The achieved rate is reported next to the requested one.} Where a budget is
+unreachable (the smallest attainable rate is still above it), the calibration returns the achieved rate instead of silently returning a threshold that satisfies nothing.
+
+\end{itemize}
+
+\section*{6. Per-\allowbreak{}variable budgets and where the claims stop}
+A single 1-\allowbreak{}per-\allowbreak{}year budget across all variables is not attainable for precipitation with a reanalysis reference. Rather than tune until the number looks good, the budget is per variable and the achieved rates are reported:
+
+\begin{center}
+\resizebox{\textwidth}{!}{%
+\tiny
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lrr}
+\toprule
+Variable & Operating budget (alarms /\allowbreak{} sensor-\allowbreak{}year) & Rationale \\
+\midrule
+\texttt{TMAX}, \texttt{TMIN} & 1.0 & Residual is close to Gaussian after SP3; the reference explains most of the variance. \\
+\texttt{PRCP} & see \texttt{docs/\allowbreak{}report.md}, Table 3 & Zero-\allowbreak{}inflated, weak point-\allowbreak{}gauge/\allowbreak{}reanalysis correlation, and a distribution shift between the calibration and test periods that the fixed calibration cannot absorb. Reported as a limitation with its own budget, and PRCP results are labelled as such wherever they appear. \\
+\bottomrule
+\end{tabular}}
+\end{center}
+
+The go/\allowbreak{}no-\allowbreak{}go experiment (section 6 of the specification) is the gate: for each pair it reports the minimum detectable bias at the operating budget, and a pair whose minimum detectable bias exceeds 3 $\sigma$ is reported as a documented limitation rather than quietly dropped.
+
+\section*{7. Detection granularity and the metrics}
+\begin{itemize}
+\item \textbf{No point adjustment, anywhere.} AUPRC is computed over sample days with the
+score \texttt{max\_\allowbreak{}d S\_\allowbreak{}d(t)/\allowbreak{}h\_\allowbreak{}d}, i.e. the actual statistic values divided by their thresholds, and detection is an \emph{event} whose interval is \texttt{[onset, onset + duration + 30]}. Point-\allowbreak{}adjusted F1 rewards a detector for catching one point of a 30-\allowbreak{}day attack; the specification forbids it and the code has no code path that computes it.
+
+\item \textbf{Delay} is \texttt{t\_\allowbreak{}alarm -\allowbreak{} onset} in days, reported as median and IQR, with the
+never-\allowbreak{}detected fraction as a separate column.
+
+\item \textbf{Damage} is counted in $\sigma$·sensor-\allowbreak{}days of undetected bias, and separately as
+the number of \emph{decision flips} (frost, heat stress, drought) in the alarm window, which is the "for what purpose was it modified" answer.
+
+\end{itemize}
+
+\section*{8. Provenance: the honest scope}
+\begin{itemize}
+\item Ed25519 over a canonical fixed-\allowbreak{}point encoding (\texttt{sp/\allowbreak{}../\allowbreak{}provenance/\allowbreak{}record.py}),
+SHA-\allowbreak{}256 chaining, signed manifest. The canonical form is \emph{not} JSON: key order, float formatting and Unicode escaping are implementation-\allowbreak{}defined, and a signature is only meaningful if every implementation agrees on the bytes.
+
+\item Values are quantised to 1e-\allowbreak{}3 before signing, so two representations of the same
+measurement cannot produce two different signatures; the quantisation is documented and tested.
+
+\item The sequence number counts records \emph{actually sent}, so a sensor outage is a
+cadence gap, not a chain break. A backwards timestamp is always rejected; a forward jump is rejected only beyond \texttt{max\_\allowbreak{}gap\_\allowbreak{}seconds} (40 days), because a daily series legitimately skips days.
+
+\item \textbf{Stated limit, repeated in the code and in the report:} provenance proves who
+sent what, in which order, unchanged. It proves nothing about whether the sensor measured truthfully. An A3 attacker who holds the key passes L0 completely, which is why L1-\allowbreak{}L5 exist and why the evaluation reports A3 separately.
+
+\end{itemize}
+
+\section*{9. Diagnosis: two confidence numbers, and a class for "I do not know"}
+\begin{itemize}
+\item \texttt{confidence} is a float (the posterior of the chosen class: 0.6-\allowbreak{}0.97 from the
+rule table's documented priors, or the logistic-\allowbreak{}regression probability in Tier 2) and is what the alert JSON carries. \texttt{confidence\_\allowbreak{}band} is the ordinal (low/\allowbreak{}medium/\allowbreak{}high) the rule table states from the number of agreeing evidence lines. Reporting a string where the specification asks for a confidence was a real defect caught by a test.
+
+\item \textbf{"Undetermined" is a first-\allowbreak{}class class.} A stuck-\allowbreak{}at fault and a constant
+replay are identical in the data; the system says so. Excluding it from the confusion matrix would inflate accuracy by removing the hard cases.
+
+\end{itemize}
+
+\section*{10. Reproducibility and cost}
+\begin{itemize}
+\item Deterministic: one seed (\texttt{config.SEED}) drives every bootstrap, surrogate and
+injection; models are cached under \texttt{results/\allowbreak{}cache/\allowbreak{}models} and are byte-\allowbreak{}stable for a given seed and data manifest.
+
+\item Offline: the bundle (24 CSVs + signed manifest) is committed; no command in
+\texttt{make all} touches the network. \texttt{python -\allowbreak{}m tsfdi fetch} is the only networked command and is not part of the pipeline.
+
+\item Feasibility target: fresh Ubuntu VM, 4 GB RAM, no GPU. Measured runtime and
+peak memory are in \texttt{docs/\allowbreak{}report.md}, Table 5; the pipeline is pure NumPy /\allowbreak{} SciPy /\allowbreak{} pandas, so there is no compilation step and no GPU dependency.
+
+\item \texttt{make verify} re-\allowbreak{}runs the pipeline and compares every published number against
+\texttt{expected\_\allowbreak{}results.json} (rate metrics with an absolute tolerance, because a rate of 0.02/\allowbreak{}yr cannot be compared with a 2 \% relative tolerance).
+
+\end{itemize}
+
+\section*{3f. The magnitude axis, and why it had to be redefined}
+Every generalisation result is quoted in units of the residual scale $\sigma$ that the detector actually sees, because that is the only magnitude that is comparable across sites, seasons and variables. Making that axis \emph{exact} took three fixes, all of which were found by looking at a raw grid file rather than at a summary.
+
+\textbf{The nominal value is the axis.} The injector reports two numbers: the \emph{nominal} magnitude (the grid point the injection was drawn from) and the \emph{realised} one (largest absolute change actually applied). An early version reported only the realised value, and that silently split cells: a 90-\allowbreak{}day ramp reaches \texttt{1 − 1/\allowbreak{}rise} of its nominal peak, so "1.5 $\sigma$" arrived as 1.467 $\sigma$ and formed a second group in every table. \texttt{magnitude\_\allowbreak{}sigma} is now the nominal grid point, \texttt{magnitude\_\allowbreak{}sigma\_\allowbreak{}realised} the effect actually achieved on the same axis, and \texttt{magnitude\_\allowbreak{}units} the same thing in data units; the family tests check that the nominal and realised values agree to rounding.
+
+\textbf{A sign bug, not a data bug.} \texttt{step} recorded \texttt{abs(delta.max())}. For a \emph{downward} step every untouched day contributes a delta of exactly 0, so the maximum was 0 and every negative-\allowbreak{}signed step was logged as a magnitude of zero — 150 phantom \texttt{0.0 σ} rows in one grid file. It now takes the nan-\allowbreak{}safe maximum of \texttt{|\allowbreak{}Δ|\allowbreak{}} inside the window, which also fixes the all-\allowbreak{}NaN magnitudes that a single missing day inside the window produced for precipitation.
+
+\textbf{Multiplicative variables need a different axis.} For precipitation the residual lives in square-\allowbreak{}root coordinates and is zero-\allowbreak{}inflated, so a bias in millimetres is not a bias of a fixed number of sigmas: one sigma of the precipitation residual is 0.19 mm\textasciicircum{}0.5, not 0.19 mm. Two consequences, both of which were measured before they were fixed:
+
+\begin{itemize}
+\item an additive offset of \texttt{m sigma} is applied in the \textbf{SP1 coordinate}
+(\texttt{sqrt(y)}), so a "2 sigma step" is a wetness-\allowbreak{}dependent change in millimetres whose realised effect really is 2 sigma. Before this, a 3 sigma rain step realised only \textasciitilde{}1 sigma and the precipitation frontier was shifted sideways by a factor of three;
+
+\item a \emph{multiplicative} attack (scaling) has its gain computed from the data so that
+the realised change equals the nominal magnitude: \texttt{g = (1 + m sigma /\allowbreak{} mean sqrt(y))\textasciicircum{}2 -\allowbreak{} 1} in the square-\allowbreak{}root coordinate and \texttt{g = m sigma /\allowbreak{} mean |\allowbreak{}y|\allowbreak{}} for temperature. A fixed 10 \% gain is a 3 °C bias at a warm station and a 0.6 °C bias at a cold one, which is why the first version of the scaling row showed 100 \% detection at every magnitude: it was a 1.8-\allowbreak{}3 sigma attack mislabelled as 0.5 sigma.
+
+\end{itemize}
+
+For the organizers' \emph{percentage} profile the reading is unchanged and is stated wherever it is used: a percentage of the seasonal range for temperature, a multiplicative factor for rain (so 12 \% = 0.6 sigma there).
+
+Noise-\allowbreak{}shaped attacks use the same nominal axis (they were previously drawn from \texttt{amplitude\_\allowbreak{}sigma}, a fixed 1.0, which made their detection rate flat in the magnitude grid — a family that cannot vary cannot be measured).
+
+\section*{3g. Two adaptive-\allowbreak{}attacker artefacts, and why the black-\allowbreak{}box row is empty no longer}
+The A2 experiments initially reported that a black-\allowbreak{}box adaptive attacker achieved \emph{zero} undetected bias on every site, i.e. that the detector suite had no exploitable margin at all. That is not a result, it is a bug, and it took three fixes to see it:
+
+\begin{enumerate}
+\item \textbf{Attribution.} The bisection counted \emph{any} alarm event after the injection
+window as a detection, so a natural event three hundred days later capped the search at zero. Alarms are now counted only inside \texttt{[onset, onset+duration+30]}, the same window the rest of the evaluation uses.
+
+\item \textbf{Pre-\allowbreak{}existing alarms.} Even inside the window, an alarm that the unmodified
+series produces anyway (a heat wave, a persistent shift, a false alarm of the drift detector) cannot be attributed to the injection. The clean-\allowbreak{}series event mask is subtracted from the attacked-\allowbreak{}series mask.
+
+\item \textbf{Resolution.} A 0.05 $\sigma$ bisection tolerance cannot distinguish "no margin"
+from "0.05 $\sigma$ of margin", and the returned lower bound was silently 0 whenever the last step alarmed. The tolerance is now 0.01 $\sigma$.
+
+\end{enumerate}
+
+With those three fixed the black-\allowbreak{}box attacker reaches 0.05–0.9 $\sigma$ of undetected bias depending on site (Table 6.4), which is the interpretation the theory predicts: below the detectors' effective resolution an adversary is free, above it it is not, and the width of the free band is site-\allowbreak{}dependent because the residual scale, the AR order and the false-\allowbreak{}alarm transfer differ by site.
+
+The evasion \emph{curve} had a fourth artefact: a single injection window per budget makes the curve non-\allowbreak{}monotone, because the achievable undetected bias depends on which days the window covers (a calm spell hides more than a stormy one). The curve now averages four windows $\times$ both signs per (site, budget), and both monotonicity and the L3 gap survive that averaging.
+
+\section*{3h. Coverage: pairs that cannot be modelled are named, not hidden}
+KHARGA precipitation has 13 valid days in eleven years, and one earlier run wrote an \texttt{ERROR} row into a results table for it. A results table is not the place for an exception message, and quietly dropping the row is worse: the reader cannot tell a missing pair from a pair that failed. \texttt{results/\allowbreak{}excluded\_\allowbreak{}pairs.csv} now lists every excluded (site, variable) pair with the reason and is regenerated on every evaluation run; the tables cover the 34 design pairs, which is all of them on the current bundle. The exclusion path is exercised by \texttt{tests/\allowbreak{}test\_\allowbreak{}reports.py}.
+
+\section*{3i. The blind spot no statistic can cover: D7, the availability channel}
+Every detector in L2 answers "does this value agree with an independent description of the same day".  All of them are blind to the failure in which the value stops arriving: a dropout makes the innovation NaN, so nothing exceeds a threshold, and a silenced station is indistinguishable from a quiet one.  In a false-\allowbreak{}data-\allowbreak{} injection exercise that is the most important gap of all, because withholding the record is a data-\allowbreak{}integrity attack that has no statistics behind it.
+
+D7 therefore tests the reporting cadence, with a data-\allowbreak{}derived envelope: a run of missing days longer than 1.5x the longest gap observed in the calibration period is an outage fault.  It is a rule rather than a calibrated test (there is no continuous statistic whose tail defines a budget), and it is deliberately kept out of the statistical alarm stream, so that a station with a broken modem cannot consume the detectors' false-\allowbreak{}alarm budget.  The measured consequence in Table 7 is that 12 \% of the bundled days are missing and a quarter of the pairs have at least one outage event in the test period — i.e. the channel fires on real gaps, not on noise.
+
+Two attribution bugs were fixed while making the diagnosis numbers honest, and both are the same mistake in different places: \textbf{the first alarm of the record is not the alarm of the injection.}  The diagnosis experiment used to take \texttt{events[0]} over the whole series, so every row of the confusion matrix was a diagnosis of some unrelated false alarm six months earlier — which is why the matrix looked identical for every injected family.  It now diagnoses the first exceedance inside \texttt{[onset, onset+duration+30]}, preferring the exceedance day over the cooldown-\allowbreak{}collapsed event onset so that an injection landing within 14 days of an earlier alarm still gets its own evidence.  The generator had the mirror-\allowbreak{}image bug: \texttt{make\_\allowbreak{}spec} ignored the requested magnitude for the families parameterised by an amplitude, so "inject a 12 sigma spike" injected the configured 1 sigma default, and the spike row of every experiment was measuring noise.  Both are covered by tests.
+
+\clearpage
+\section*{Data sources}
+The specification marks several items \textbf{[Verify]} (section 18). This note records each one, the documentation or probe that resolved it, and the coding consequence. Everything here was checked against the live services in October 2026 while the bundle was built; the bundle itself is committed so that a reader never needs the network.
+
+\section*{1. NCEI data-\allowbreak{}service parameter names — resolved}
+Endpoint actually used:
+
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+https://www.ncei.noaa.gov/access/services/data/v1
+    ?dataset=daily-summaries
+    &stations=<11-char GHCN id>          (comma-separated for several)
+    &startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+    &dataTypes=TMAX,TMIN,PRCP
+    &format=csv&units=metric&includeAttributes=true
+\end{Verbatim}
+
+Verified behaviour (probed on CARTHAGE \texttt{TSM00060715}, 2015-\allowbreak{}2024):
+
+\begin{itemize}
+\item \textbf{Units}: \texttt{units=metric} is required for °C and mm; the default is US units.
+\item \textbf{QC flags}: with \texttt{includeAttributes=true} every variable gets a companion
+column \texttt{<VAR>\_\allowbreak{}ATTRIBUTES} whose comma-\allowbreak{}separated fields are \texttt{source, qflag, ...}. We keep a value only when the \texttt{qflag} field is empty (GHCN convention: empty = passed all QC); flagged values are \emph{not} silently repaired, they become missing days. This is the difference between "the archive says this value is doubtful" and "the sensor is lying", and the pipeline must not confuse the two.
+
+\item \textbf{Missing days are omitted from the CSV, not filled} — so the calendar has to
+be rebuilt explicitly (\texttt{io.load\_\allowbreak{}pair} reindexes onto a complete daily calendar and sets a gap flag). Treating the CSV row order as the calendar is a classic and silent source of misalignment.
+
+\item \textbf{AWND is not populated} for the Mediterranean stations in this bundle, so the
+wind variable was dropped early (the specification allows a subset); only \texttt{TMAX}, \texttt{TMIN}, \texttt{PRCP} are used.
+
+\item Station identifiers are the 11-\allowbreak{}character GHCN ids (e.g. \texttt{TSM00060715}), obtained
+from \texttt{ghcnd-\allowbreak{}stations.txt} and cross-\allowbreak{}checked against \texttt{ghcnd-\allowbreak{}inventory.txt} for the first/\allowbreak{}last year of each element (that check is what selected the sites in \texttt{config/\allowbreak{}sites.yaml}, and it is re-\allowbreak{}runnable as \texttt{python -\allowbreak{}m tsfdi sites}).
+
+\end{itemize}
+
+\section*{2. NASA POWER missing-\allowbreak{}value marker and parameter names — resolved}
+Endpoint actually used:
+
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+https://power.larc.nasa.gov/api/temporal/daily/point
+    ?parameters=T2M,T2M_MAX,T2M_MIN,RH2M,WS2M,PRECTOTCORR,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN
+    &community=AG&latitude=<lat>&longitude=<lon>
+    &start=YYYYMMDD&end=YYYYMMDD&format=JSON
+\end{Verbatim}
+
+\begin{itemize}
+\item **Missing marker is \texttt{-\allowbreak{}999.0}** (fill value); it is mapped to \texttt{NaN} at load time
+and \emph{never} to zero — for precipitation that distinction is the whole game.
+
+\item Values are a nested dictionary \texttt{properties.parameter.<NAME>.<YYYYMMDD>}, with
+string keys, so the date index must be parsed rather than positional (another silent-\allowbreak{}misalignment trap: a POWER response is not a rectangular array).
+
+\item \textbf{Timestamps are local solar time (LST)}, not UTC. GHCN-\allowbreak{}Daily days are local
+calendar days, so both roads are treated as local days and the \emph{lag} between them is estimated on the calibration period instead of being assumed to be zero. Measured lags are 0 or ±1 day for the bundled stations, consistent with LST versus local-\allowbreak{}standard-\allowbreak{}time reporting.
+
+\item \texttt{PRECTOTCORR} is a corrected precipitation flux; it is the closest daily
+analogue to a gauge total, and its correlation with a point gauge is much weaker than for temperature — the reason precipitation carries a restricted claim in the report.
+
+\end{itemize}
+
+\section*{3. Hourly station data — available, deliberately not used}
+An hourly source does exist and was checked: NCEI's \textbf{Integrated Surface Database (ISD /\allowbreak{} "Global Hourly")} is being replaced by \textbf{GHCNh (Global Historical Climatology Network hourly)}, with GHCNh using the same station identifiers as GHCN-\allowbreak{}Daily (NCEI announcement, service-\allowbreak{}change notice). The transition is date-\allowbreak{}dependent in the NCEI data-\allowbreak{}access API: \texttt{global-\allowbreak{}hourly} for dates before 2025-\allowbreak{}01-\allowbreak{}01 and \texttt{global-\allowbreak{}historical-\allowbreak{}climatology-\allowbreak{}network-\allowbreak{}hourly} from 2025-\allowbreak{}01-\allowbreak{}01 onwards, with \textbf{UTC timestamps} for hourly queries (unlike the daily service).
+
+Decision: \textbf{daily data is used for the evaluation}, and the architecture is hourly-\allowbreak{}capable (the streaming pipeline is O(1)-\allowbreak{}state per reading and provenance costs \textasciitilde{}0.2 ms/\allowbreak{}record). The reasons are stated rather than implied: (i) the challenge's attack magnitudes are defined in units of the seasonal range and the sigma of the \emph{daily} residual, so an hourly evaluation would have needed a second calibration protocol; (ii) GHCNh coverage for the North-\allowbreak{}African stations in this bundle is sparse, which would have silently changed the site set; (iii) the reference product is daily, so an hourly evaluation would have required an interpolation of the reference that would then dominate the residual. This is a documented scope decision, not an oversight.
+
+\section*{4. The 12 \% /\allowbreak{} 15 \% /\allowbreak{} 7-\allowbreak{}sample profile and how a percent is defined — resolved by documentation}
+The specification leaves the meaning of "12 \%" open. The implementation uses, and every table states:
+
+\begin{itemize}
+\item \textbf{temperature}: percent of the site's \emph{seasonal range} (max $-$ min of the fitted
+seasonal baseline). Percent of a Celsius value is meaningless — 12 \% of 5 °C is 0.6 K and 12 \% of 30 °C is 3.6 K for the same station in the same winter — so the range is the only scale that is stable across sites and seasons.
+
+\item \textbf{precipitation and wind}: a multiplicative factor (12 \% more rain), because
+the working coordinate is already a variance-\allowbreak{}stabilised transform of a non-\allowbreak{}negative quantity.
+
+\end{itemize}
+
+Every table also reports the **$\sigma$-\allowbreak{}equivalent** of each percent, computed from the site's own residual scale, so a reader who prefers $\sigma$ units never has to convert.
+
+\section*{5. Jury VM specification — unknown, therefore assumed worst case}
+Unknown at the time of writing. Consequences that are implemented, not promised:
+
+\begin{itemize}
+\item no network at run time (bundle committed; \texttt{make all} never fetches);
+\item no GPU and no compiler (pure NumPy/\allowbreak{}SciPy/\allowbreak{}pandas wheels, pinned in
+\texttt{requirements.txt});
+
+\item the dashboard is optional: \texttt{python -\allowbreak{}m tsfdi report-\allowbreak{}static} writes a
+self-\allowbreak{}contained HTML file with inline SVG and no JavaScript, and the CLI reports everything the dashboard shows;
+
+\item the model cache is deterministic for a given seed and manifest, so a re-\allowbreak{}run
+either reproduces \texttt{expected\_\allowbreak{}results.json} within tolerance or fails loudly.
+
+\end{itemize}
+
+\section*{6. Reproducing the bundle}
+\texttt{data/\allowbreak{}bundle/\allowbreak{}FETCH\_\allowbreak{}INFO.json} records the exact request strings, retrieval timestamps and row counts per file. \texttt{python -\allowbreak{}m tsfdi fetch -\allowbreak{}-\allowbreak{}force} rebuilds it. The archive providers revise their holdings, so a fresh fetch may legitimately change a handful of values; that is precisely why the bundle is pinned and signed rather than fetched on demand.
+
+\clearpage
+\section*{State of the art}
+The challenge sits at the intersection of three literatures. This note records what each provides, what it assumes, and which assumption breaks for in-\allowbreak{}situ climate sensors — the last column is the reason for each design choice in the system.
+
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.081\linewidth}>{\raggedright\arraybackslash}p{0.178\linewidth}>{\raggedright\arraybackslash}p{0.162\linewidth}>{\raggedright\arraybackslash}p{0.128\linewidth}>{\raggedright\arraybackslash}p{0.348\linewidth}}
+\toprule
+Approach & Representative work (line of research) & Contribution & Assumption that fails here & What we take /\allowbreak{} change \\
+\midrule
+\endfirsthead
+\toprule
+Approach & Representative work (line of research) & Contribution & Assumption that fails here & What we take /\allowbreak{} change \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\textbf{False-\allowbreak{}data injection in control systems} & Secure state estimation and stealthy-\allowbreak{}attack analysis for power and water networks (Liu, Ning, Mo, Sinopoli and the follow-\allowbreak{}on literature) & Formal adversary model; the notion of a \emph{stealthy} attack that keeps every residual below its threshold; observability conditions for detection & The plant is a linear model with known inputs and full measurement redundancy; observations are Gaussian and complete & We adopt the adversary hierarchy (A0–A3) and the \emph{damage-\allowbreak{}under-\allowbreak{}a-\allowbreak{}budget} framing; we replace the linear state estimator with a robust regression on an independent reference, and replace "detectable/\allowbreak{}unobservable" with a calibrated false-\allowbreak{}alarm budget \\
+\textbf{Climate data quality control} & GHCN-\allowbreak{}Daily QC flags, BSRN quality tests, neighbour-\allowbreak{}comparison and spatial-\allowbreak{}consistency checks & Operational, decades-\allowbreak{}proven fault detection (range, internal consistency, persistence, spatial outliers) & The checks detect \emph{implausible} values; a falsified value that mimics weather passes all of them & We keep a subset of them as D4 (single-\allowbreak{}sample excursions) and D7 (reporting-\allowbreak{}gap availability) but add the reference-\allowbreak{}anchored residual tests that a plausible falsification must violate \\
+\textbf{Change-\allowbreak{}point and sequential detection} & Page's CUSUM, Roberts' EWMA, PELT/\allowbreak{}binary segmentation, matched filtering & Optimal (in the Lorden sense) detection of a shift for a given false-\allowbreak{}alarm rate; exact inference for change points & Independent, stationary, complete, Gaussian-\allowbreak{}ish residuals & We use CUSUM/\allowbreak{}EWMA/\allowbreak{}PELT as D1/\allowbreak{}D2/\allowbreak{}B2 after \emph{whitening, degapping and bias/\allowbreak{}scale stabilisation}; every threshold comes from a block bootstrap (or a phase-\allowbreak{}randomised surrogate where the bootstrap fabricates the signal) \\
+\textbf{Residual-\allowbreak{}based sensor validation with redundancy} & Analytical-\allowbreak{}redundancy literature, cross-\allowbreak{}sensor validation & Cheap and powerful when several sensors measure the same quantity & A single station measures the point; no second sensor exists at the same location & We use a \emph{different kind} of redundancy: an independent gridded product (reanalysis) that is cheap, complete and public, at the cost of site-\allowbreak{}representativeness error \\
+\textbf{Replay /\allowbreak{} adversarial-\allowbreak{}sequence detection} & Anti-\allowbreak{}spoofing for GPS and sensor networks; subsequence matching & Detection of copied sequences via cross-\allowbreak{}correlation and exact matching & The signal is high-\allowbreak{}entropy and not strongly autocorrelated & We match on the \emph{anomaly} road (a level series repeats its own annual cycle), exclude degenerate windows (dry spells are self-\allowbreak{}similar), and pair the match with a reference-\allowbreak{}contrast test \\
+\textbf{Provenance and integrity} & Merkle hash chains, digital signatures, trusted execution & Tamper evidence for data in transit and at rest & A signature says nothing about truthfulness & L0 implements the chain and \emph{explicitly} limits its claim; A3 is the case it cannot cover \\
+\textbf{Adaptive/\allowbreak{}evasive adversaries} & Urbina et al. on stealthy sensor attacks; game-\allowbreak{}theoretic detection & Quantifies what an adversary achieves under a detection constraint & Requires knowing the detector's objective and its budget & We implement A2 white-\allowbreak{}box and black-\allowbreak{}box, and report damage at a fixed budget rather than a single detection rate \\
+\end{longtable}
+}
+
+\section*{The gap, stated precisely}
+No published pipeline, to our knowledge, (a) anchors a point sensor to a \textbf{hash-\allowbreak{}pinned independent reanalysis reference}, (b) calibrates \textbf{every} threshold to a false-\allowbreak{}alarm budget in the presence of serial correlation, 35–45 \% missing days and a drifting station/\allowbreak{}reference relationship, and (c) reports detectability, false alarms and \textbf{attacker damage} on the same footing, with the failure modes of the statistics — not only the success modes — measured on real archives. This report does all three, and pays for it by documenting the places where the result is a limitation rather than a win.
+
+\section*{References (line of research, not a bibliography of one paper)}
+\begin{itemize}
+\item Secure state estimation /\allowbreak{} stealthy attacks: Liu, Mo \& Johansson; Pasqualetti,
+Dörfler \& Bullo; Teixeira et al.; Urbina et al.
+
+\item Sequential detection: Page (1954); Roberts (1959); Lorden (1971); Basseville \&
+Nikiforov; Killick, Fearnhead \& Eckley (PELT); Truong, Oudre \& Vayatis (\texttt{ruptures}).
+
+\item Robust regression and scale: Huber; Rousseeuw \& Croux (MAD/\allowbreak{}SN).
+\item Spectral and surrogate methods: Welch; Theiler et al. (phase randomisation);
+Ledoit \& Wolf (shrinkage covariance).
+
+\item Climate data records and QC: Menne et al. (GHCN-\allowbreak{}Daily); Dürr et al. /\allowbreak{} Ohmura
+et al. (BSRN); reanalysis as a reference product: Hersbach et al. (ERA5); POWER project documentation (NASA LaRC).
+
+\item Reproducibility: Sandve et al.; Piccolo \& Frampton (offline, container-\allowbreak{}based
+reproduction); \texttt{pytest} and \texttt{make}-\allowbreak{}based pipelines.
+
+\end{itemize}
+
+\clearpage
+\section*{Reproducing every number}
+Everything needed is in this repository. The data bundle is committed and hash-\allowbreak{}pinned, so no command in the default pipeline touches the network.
+
+\section*{1. Environment}
+Target: a fresh Ubuntu 22.04/\allowbreak{}24.04 machine, 4 GB RAM, 2 vCPU, no GPU, no compiler toolchain. Python $\geq$ 3.11.
+
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt        # pinned versions
+\end{Verbatim}
+
+\texttt{requirements.txt} pins every runtime dependency (numpy, pandas, scipy, scikit-\allowbreak{}learn, PyWavelets, cryptography, matplotlib, PyYAML, ruptures, tabulate). Three optional files add what the runtime does not need:
+
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.345\linewidth}>{\raggedright\arraybackslash}p{0.138\linewidth}>{\raggedright\arraybackslash}p{0.452\linewidth}}
+\toprule
+File & Contents & Needed for \\
+\midrule
+\endfirsthead
+\toprule
+File & Contents & Needed for \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{requirements-\allowbreak{}dev.txt} & \texttt{pytest} & \texttt{make test} \\
+\texttt{requirements-\allowbreak{}app.txt} & \texttt{streamlit} & \texttt{make dashboard} \\
+\texttt{requirements-\allowbreak{}report.txt} & \texttt{pypdf} & \texttt{make report-\allowbreak{}pdf} (plus XeLaTeX, below) \\
+\end{longtable}
+}
+
+\texttt{pyod} is not required: the Isolation-\allowbreak{}Forest baseline B3 uses \texttt{scikit-\allowbreak{}learn}'s implementation when \texttt{pyod} is absent. The dashboard is not required either — \texttt{results/\allowbreak{}static\_\allowbreak{}report.html} is self-\allowbreak{}contained and needs no Python at all. Nothing else is imported.
+
+\section*{2. One command}
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+make all          # data-verify -> gonogo -> calibrate -> experiments -> report -> verify -> static
+\end{Verbatim}
+
+\texttt{make all} is a wrapper over the CLI; each stage can be run alone and writes its own artefacts:
+
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.115\linewidth}>{\raggedright\arraybackslash}p{0.313\linewidth}>{\raggedright\arraybackslash}p{0.506\linewidth}}
+\toprule
+Target & Command & Output \\
+\midrule
+\endfirsthead
+\toprule
+Target & Command & Output \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{make data-\allowbreak{}verify} & \texttt{python -\allowbreak{}m tsfdi data-\allowbreak{}verify} & verifies the signed manifest \\
+\texttt{make gonogo} & \texttt{python -\allowbreak{}m tsfdi gonogo} & \texttt{results/\allowbreak{}gonogo.\{csv,md\}} \\
+\texttt{make calibrate} & \texttt{python -\allowbreak{}m tsfdi calibrate} & \texttt{results/\allowbreak{}calibrate\_\allowbreak{}all.log} (not committed), model cache \\
+\texttt{make experiments} & \texttt{python -\allowbreak{}m tsfdi experiments} & \texttt{results/\allowbreak{}raw/\allowbreak{}*.csv} (tidy, one row per cell) \\
+\texttt{make report} & \texttt{python -\allowbreak{}m tsfdi report-\allowbreak{}figures} then \texttt{report-\allowbreak{}text} & \texttt{results/\allowbreak{}tables/\allowbreak{}*.csv/\allowbreak{}.md}, \texttt{results/\allowbreak{}figures/\allowbreak{}*.png}, \texttt{docs/\allowbreak{}report.md} \\
+\texttt{make report-\allowbreak{}pdf} & \texttt{python -\allowbreak{}m tsfdi report-\allowbreak{}pdf} & \texttt{docs/\allowbreak{}report.pdf}, \texttt{docs/\allowbreak{}appendix.pdf}, \texttt{docs/\allowbreak{}documentation.pdf} and their \texttt{.tex} sources (XeLaTeX) \\
+\texttt{make verify} & \texttt{python -\allowbreak{}m tsfdi verify} & exit code 0/\allowbreak{}1 and the metric-\allowbreak{}by-\allowbreak{}metric diff on stdout \\
+\texttt{make bench} & \texttt{python -\allowbreak{}m tsfdi bench} & \texttt{results/\allowbreak{}bench\_\allowbreak{}provenance.\{csv,json\}} \\
+\texttt{make test} & \texttt{python -\allowbreak{}m pytest tests/\allowbreak{}} & unit and integration tests (81, no network; needs \texttt{requirements-\allowbreak{}dev.txt}) \\
+\texttt{make dashboard} & \texttt{streamlit run src/\allowbreak{}tsfdi/\allowbreak{}app/\allowbreak{}dashboard.py} & interactive demo \\
+\texttt{make static} & \texttt{python -\allowbreak{}m tsfdi report-\allowbreak{}static} & \texttt{results/\allowbreak{}static\_\allowbreak{}report.html} (no JS, self-\allowbreak{}contained) \\
+\end{longtable}
+}
+
+The PDFs need XeLaTeX and a handful of packages, none of which the pipeline imports: \texttt{xelatex} with \texttt{booktabs}, \texttt{longtable}, \texttt{titlesec}, \texttt{enumitem}, \texttt{caption}, \texttt{fvextra} and the \texttt{tex-\allowbreak{}gyre} fonts (\texttt{texlive-\allowbreak{}xetex} + \texttt{texlive-\allowbreak{}latex-\allowbreak{}recommended} + \texttt{texlive-\allowbreak{}fonts-\allowbreak{}recommended} on Debian/\allowbreak{}Ubuntu, or \texttt{tlmgr install booktabs titlesec enumitem caption fvextra tex-\allowbreak{}gyre microtype} on a minimal TeX Live). The committed PDFs are the artefacts of record; re-\allowbreak{}running the target is only needed if the Markdown changes.
+
+\texttt{bash run.sh} does the same once the environment above is installed (it does not create the virtual environment itself), and accepts \texttt{-\allowbreak{}-\allowbreak{}quick} for a smoke run of the whole pipeline in a few minutes.
+
+\section*{3. Determinism}
+\begin{itemize}
+\item One seed: \texttt{config.SEED} (\texttt{src/\allowbreak{}tsfdi/\allowbreak{}config.py}). Every bootstrap replicate,
+phase-\allowbreak{}randomised surrogate, injection and train/\allowbreak{}test split derives from it.
+
+\item The (site, variable) models are cached in \texttt{results/\allowbreak{}cache/\allowbreak{}models}; deleting the
+directory and re-\allowbreak{}running \texttt{make calibrate} reproduces the same thresholds to bit level on the same data manifest.
+
+\item \texttt{make verify} compares the metrics computed from the current \texttt{results/\allowbreak{}} tree
+with \texttt{expected\_\allowbreak{}results.json} at the repository root. Because \texttt{make all} regenerates \texttt{results/\allowbreak{}} first, the comparison is a genuine reproduction check; run on its own against the committed results it only confirms internal consistency, which is why it is documented as the last step of the chain. Rate metrics are compared with an absolute tolerance (a rate of 0.02 alarms/\allowbreak{}sensor-\allowbreak{}year cannot be compared with a 2 \% relative tolerance), proportions with a 0.02 absolute tolerance.
+
+\end{itemize}
+
+\section*{4. Data}
+\texttt{data/\allowbreak{}bundle/\allowbreak{}} contains 24 CSVs (12 stations $\times$ up to 3 variables) plus \texttt{data/\allowbreak{}bundle/\allowbreak{}FETCH\_\allowbreak{}INFO.json}, \texttt{MANIFEST.sha256} and its Ed25519 signature \texttt{MANIFEST.sig}. The reference files came from NASA POWER (\texttt{/\allowbreak{}api/\allowbreak{}temporal/\allowbreak{}daily/\allowbreak{}point}, community AG); the sensor files from the GHCN-\allowbreak{}Daily access API (\texttt{dataset=daily-\allowbreak{}summaries}, metric units, quality flags kept). \texttt{data/\allowbreak{}bundle/\allowbreak{}FETCH\_\allowbreak{}INFO.json} records the exact request strings, the retrieval date, and the row counts, so the bundle can be rebuilt from scratch if a network is available:
+
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+python -m tsfdi fetch --force
+\end{Verbatim}
+
+Re-\allowbreak{}fetching is \textbf{not} part of \texttt{make all}: the providers revise their archives, and a reproducibility claim that depends on a live API is not a reproducibility claim. The pinned bundle is the artefact of record.
+
+\section*{5. Runtimes on the reference machine}
+Measured on 2 vCPU /\allowbreak{} 4 GB (no GPU). Figures are wall-\allowbreak{}clock and exclude the one-\allowbreak{}off data fetch.
+
+{\small
+\setlength{\tabcolsep}{4.5pt}
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.631\linewidth}>{\raggedright\arraybackslash}p{0.322\linewidth}}
+\toprule
+Stage & Runtime \\
+\midrule
+\endfirsthead
+\toprule
+Stage & Runtime \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{data-\allowbreak{}verify} & < 1 s \\
+\texttt{gonogo} (34 pairs, incl. Monte-\allowbreak{}Carlo minimum detectable bias) & see \texttt{results/\allowbreak{}gonogo.md} header \\
+\texttt{calibrate} (34 pairs, 14 detectors, 4 budgets) & $\approx$ 28 min \\
+\texttt{experiments} (full grid) & $\approx$ 5.6 h single-\allowbreak{}core; the shipped run used the split below \\
+\texttt{scripts/\allowbreak{}run\_\allowbreak{}grid.py results/\allowbreak{}raw/\allowbreak{}grid\_\allowbreak{}tmax.csv TMAX 20} & $\approx$ 1.3 h (one core) \\
+\texttt{scripts/\allowbreak{}run\_\allowbreak{}grid.py results/\allowbreak{}raw/\allowbreak{}grid\_\allowbreak{}secondary.csv TMIN 10} then \texttt{PRCP} & $\approx$ 0.4 h + 0.2 h (second core) \\
+\texttt{scripts/\allowbreak{}run\_\allowbreak{}rest.py} (profile, FA, diagnosis, baselines, ablation, efficiency, evasion) & $\approx$ 0.9 h \\
+\texttt{report-\allowbreak{}figures} & < 30 s \\
+\texttt{bench} (100 000 records) & < 60 s \\
+\texttt{tests} & see \texttt{make test} \\
+\end{longtable}
+}
+
+The generalisation grid is the only stage that does not fit comfortably in one process on the reference machine, so it is split by variable and run two at a time:
+
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+python3 scripts/run_grid.py results/raw/grid_tmax.csv TMAX 20      # core 1
+python3 scripts/run_grid.py results/raw/grid_secondary.csv TMIN 10 # core 2, then PRCP 10
+python3 scripts/merge_grid.py            # -> results/raw/table2_grid_raw.csv
+python3 scripts/run_rest.py              # everything except the grid
+\end{Verbatim}
+
+\texttt{scripts/\allowbreak{}README.md} documents this parallel path and the constraint behind it: a change to how a family's magnitude is calibrated invalidates that family's rows and nothing else, so the suite is re-\allowbreak{}run per family rather than wholesale.
+
+The dominant cost is the bootstrap calibration, which is O(replicates $\times$ days $\times$ detectors) per pair and was deliberately traded against Monte-\allowbreak{}Carlo error (see \texttt{docs/\allowbreak{}design.md} §5).
+
+\section*{6. Repository layout}
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\footnotesize,frame=none,numbers=none]
+config/          YAML configuration: sites, detectors, attacks, profile, decisions
+data/bundle/     pinned CSVs + signed manifest (the artefact of record)
+docs/            threat model, design decisions, this file, report
+results/         every generated artefact (raw, tables, figures, cache)
+scripts/         optional parallel entry points (see scripts/README.md)
+src/tsfdi/       the package (sp, detect, attacks, provenance, diagnose, eval, app)
+tests/           unit and integration tests (pytest)
+Makefile         the seven stages above
+run.sh           the same, from a prepared shell
+\end{Verbatim}
+
+\end{document}

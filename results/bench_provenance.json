@@ -1,0 +1,62 @@
+[
+  {
+    "metric": "n_records",
+    "value": 100000,
+    "unit": "records"
+  },
+  {
+    "metric": "sign_us_per_record",
+    "value": 102.84232455999701,
+    "unit": "microseconds"
+  },
+  {
+    "metric": "verify_us_per_record",
+    "value": 242.4290387000019,
+    "unit": "microseconds"
+  },
+  {
+    "metric": "sign_verify_us_per_record",
+    "value": 345.2713632599989,
+    "unit": "microseconds"
+  },
+  {
+    "metric": "bytes_added_per_record",
+    "value": 296,
+    "unit": "bytes"
+  },
+  {
+    "metric": "bytes_full_record",
+    "value": 404,
+    "unit": "bytes"
+  },
+  {
+    "metric": "throughput_with_provenance",
+    "value": 2896.272631932618,
+    "unit": "records/s"
+  },
+  {
+    "metric": "throughput_without_provenance",
+    "value": 58256.223216539125,
+    "unit": "records/s"
+  },
+  {
+    "metric": "security_overhead_ratio",
+    "value": 20.114205608353263,
+    "unit": "x"
+  },
+  {
+    "metric": "peak_traced_mb",
+    "value": 56.59962,
+    "unit": "MB"
+  },
+  {
+    "metric": "records_accepted",
+    "value": 100000,
+    "unit": "records"
+  },
+  {
+    "metric": "anchor_fingerprint",
+    "value": "23aeb31b5b1728b717dc312bd349c300",
+    "unit": "sha256-hex-32"
+  }
+]

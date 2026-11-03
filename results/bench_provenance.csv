@@ -1,0 +1,13 @@
+metric,value,unit
+n_records,100000,records
+sign_us_per_record,102.84232455999701,microseconds
+verify_us_per_record,242.4290387000019,microseconds
+sign_verify_us_per_record,345.2713632599989,microseconds
+bytes_added_per_record,296,bytes
+bytes_full_record,404,bytes
+throughput_with_provenance,2896.272631932618,records/s
+throughput_without_provenance,58256.223216539125,records/s
+security_overhead_ratio,20.114205608353263,x
+peak_traced_mb,56.59962,MB
+records_accepted,100000,records
+anchor_fingerprint,23aeb31b5b1728b717dc312bd349c300,sha256-hex-32

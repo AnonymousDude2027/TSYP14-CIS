@@ -1,0 +1,1 @@
+Clean vs A1a fingerprint distance. The attacker never exceeds the level thresholds; it falls *below* the calibration cloud, which is why D6 is two-sided.

@@ -1,0 +1,4 @@
+# Test suite only.  The runtime pipeline does not import these.
+#   pip install -r requirements-dev.txt
+#   make test
+pytest==9.2.0
